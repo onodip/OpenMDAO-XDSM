@@ -5,7 +5,7 @@ import numpy as np
 from numpy.distutils.exec_command import find_executable
 
 import openmdao.api as om
-from openmdao_xdsm import write_xdsm, write_html
+from omxdsm import write_xdsm, write_html
 from openmdao.test_suite.components.sellar import SellarNoDerivatives, SellarDis1, SellarDis2
 from openmdao.test_suite.components.sellar_feature import SellarMDA
 from openmdao.test_suite.scripts.circuit import Circuit
