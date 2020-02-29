@@ -120,3 +120,10 @@ def _xdsm_cmd(options, user_args):
                    class_names=options.class_names,
                    equations=options.equations,
                    **kwargs)
+
+
+def _xdsm_setup():
+    """
+    This command prints a hello message after final setup.
+    """
+    return _xdsm_setup_parser, _xdsm_cmd, 'Generate an XDSM diagram of a model.'
