@@ -4,7 +4,7 @@ A console script wrapper for multiple openmdao functions.
 from __future__ import print_function
 
 import openmdao.utils.hooks as hooks
-from openmdao_xdsm.xdsm_writer import write_xdsm, \
+from omxdsm.xdsm_writer import write_xdsm, \
     _DEFAULT_BOX_STACKING, _DEFAULT_BOX_WIDTH, _MAX_BOX_LINES, _DEFAULT_OUTPUT_SIDE, _CHAR_SUBS
 from openmdao.utils.file_utils import _load_and_exec
 
