@@ -1005,7 +1005,7 @@ class TestXDSMjsViewer(unittest.TestCase):
 class TestCustomXDSMViewer(unittest.TestCase):
 
     def test_custom_writer(self):
-        from openmdao_xdsm.xdsm_writer import XDSMjsWriter
+        from omxdsm.xdsm_writer import XDSMjsWriter
 
         class CustomWriter(XDSMjsWriter):
             """Customized XDSM writer, based on the XDSMjs writer."""

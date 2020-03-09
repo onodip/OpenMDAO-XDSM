@@ -27,7 +27,7 @@ from openmdao.core.problem import Problem
 from openmdao.utils.general_utils import simple_warning
 from openmdao.utils.webview import webview
 from openmdao.visualization.n2_viewer.n2_viewer import _get_viewer_data
-from openmdao.visualization.xdsm_viewer.html_writer import write_html
+from omxdsm.html_writer import write_html
 
 _DIR = os.path.dirname(os.path.abspath(__file__))
 _XDSMJS_PATH = os.path.join(_DIR, 'XDSMjs')
