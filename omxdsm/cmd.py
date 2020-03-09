@@ -6,7 +6,7 @@ from __future__ import print_function
 import openmdao.utils.hooks as hooks
 from omxdsm.xdsm_writer import write_xdsm, \
     _DEFAULT_BOX_STACKING, _DEFAULT_BOX_WIDTH, _MAX_BOX_LINES, _DEFAULT_OUTPUT_SIDE, _CHAR_SUBS
-from openmdao.utils.file_utils import _load_and_exec
+from openmdao.utils.file_utils import _load_and_exec, _to_filename
 
 
 def _xdsm_setup_parser(parser):
@@ -79,7 +79,7 @@ def _xdsm_cmd(options, user_args):
     user_args : list of str
         Command line options after '--' (if any).  Passed to user script.
     """
-    filename = options.file[0]
+    filename = _to_filename(options.file[0])
 
     kwargs = {}
     for name in ['box_stacking', 'box_width', 'box_lines', 'numbered_comps', 'number_alignment']:
@@ -106,10 +106,10 @@ def _xdsm_cmd(options, user_args):
 
         hooks._register_hook('setup', 'Problem', post=_xdsm)
 
-        _load_and_exec(filename, user_args)
+        _load_and_exec(options.file[0], user_args)
     else:
         # assume the file is a recording, run standalone
-        write_xdsm(filename, filename=options.outfile, model_path=options.model_path,
+        write_xdsm(options.file[0], filename=options.outfile, model_path=options.model_path,
                    recurse=options.recurse,
                    include_external_outputs=not options.no_extern_outputs,
                    out_format=options.format,
