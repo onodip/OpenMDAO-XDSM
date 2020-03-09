@@ -1,5 +1,5 @@
 """
-XDSM writer using the pyXDSM package or XDSMjs.
+XDSM writer for OpenMDAO 3.X using the pyXDSM package or XDSMjs.
 
 The XDSM (eXtended Design Structure Matrix) is a tool used to visualize MDO processes.
 It is an extension of the classical Design Structure Matrix commonly used in systems engineering to

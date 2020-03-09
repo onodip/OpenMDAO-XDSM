@@ -1,6 +1,6 @@
 from setuptools import setup
 
-__version__ = "0.0"
+__version__ = "0.1"
 __author__ = 'Peter Onodi'
 
 setup(
@@ -12,6 +12,8 @@ setup(
     classifiers=[
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: Apache Software License',
+
+
         'Natural Language :: English',
         'Operating System :: MacOS :: MacOS X',
         'Operating System :: POSIX :: Linux',
@@ -20,14 +22,14 @@ setup(
         'Programming Language :: Python',
     ],
     install_requires=[
-        'openmdao>=2.10',
+        'openmdao>=3.0.0.dev0',
     ],
     packages=[
         'omxdsm',
     ],
     entry_points={
         'openmdao_command': [
-            'xdsm_plugin=omxdsm.cmd:_xdsm_setup'
+            'xdsm=omxdsm.cmd:_xdsm_setup'
         ]
     },
 )

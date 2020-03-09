@@ -1,5 +1,5 @@
 """
-A console script wrapper for multiple openmdao functions.
+A console script wrapper for OpenMDAO-XDSM.
 """
 from __future__ import print_function
 
@@ -11,7 +11,7 @@ from openmdao.utils.file_utils import _load_and_exec, _to_filename
 
 def _xdsm_setup_parser(parser):
     """
-    Set up the openmdao subparser for the 'openmdao xdsm' command.
+    Set up the OpenMDAO subparser for the 'openmdao xdsm' command.
 
     Parameters
     ----------
