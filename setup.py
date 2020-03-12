@@ -20,7 +20,7 @@ setup(
         'Programming Language :: Python',
     ],
     install_requires=[
-        'openmdao>=3.0.0.dev0',
+        'openmdao>=3.0.0',
     ],
     packages=[
         'omxdsm',
