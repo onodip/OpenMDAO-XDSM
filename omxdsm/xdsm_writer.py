@@ -34,17 +34,21 @@ _XDSMJS_PATH = os.path.join(_DIR, 'XDSMjs')
 # Writer is chosen based on the output format
 _OUT_FORMATS = {'tex': 'pyxdsm', 'pdf': 'pyxdsm', 'json': 'xdsmjs', 'html': 'xdsmjs'}
 
+# Variable formatting settings
+_SUPERSCRIPTS = {'optimal': '*', 'initial': '(0)', 'target': 't', 'consistency': 'c'}
+
 # Character substitutions in labels
 # pyXDSM:
 # Interpreted as TeX syntax
 # Underscore is replaced with a skipped underscore
 # Round parenthesis is replaced with subscript syntax, e.g. x(1) --> x_{1}
+# First and last element ensures that the init symbol stays unformatted
 _CHAR_SUBS = {
-    'pyxdsm': (('_', r'\_'), ('(', '_{'), (')', '}'),),
+    'pyxdsm': ((_SUPERSCRIPTS['initial'], '#INIT#'), ('_', r'\_'), ('(', '_{'), (')', '}'),
+               ('#INIT#', _SUPERSCRIPTS['initial'])),
     'xdsmjs': ((' ', '-'), (':', ''), ('_', r'\_'),),
 }
-# Variable formatting settings
-_SUPERSCRIPTS = {'optimal': '*', 'initial': '(0)', 'target': 't', 'consistency': 'c'}
+
 # Default solver, if no solver is added to a group.
 _DEFAULT_SOLVER_NAMES = {'linear': 'LN: RUNONCE', 'nonlinear': 'NL: RUNONCE'}
 # On which side to place outputs? One of "left", "right"
