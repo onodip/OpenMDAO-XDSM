@@ -1373,6 +1373,8 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
     -------
         BaseXDSMWriter
     """
+    include_indepvarcomps = False
+
     # TODO implement residuals
     # Box appearance
     box_stacking = kwargs.pop('box_stacking', _DEFAULT_BOX_STACKING)
@@ -1423,8 +1425,8 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
     tree = viewer_data['tree']
 
     # Get the top level system to be transcripted to XDSM
-    comps = _get_comps(tree, model_path=model_path, recurse=recurse, include_solver=include_solver,
-                       include_indep_varscomps=False)
+    comps, filtered_comps = _get_comps(tree, model_path=model_path, recurse=recurse, include_solver=include_solver,
+                                       include_indep_varcomps=include_indepvarcomps)
     if include_solver:
         # Add the top level solver
         top_level_solver = dict(tree)
@@ -1435,14 +1437,34 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
 
     solvers = []  # Solver labels
 
-    conns1, external_inputs1, external_outputs1 = _prune_connections(connections,
-                                                                     model_path=model_path)
+    conns1, external_inputs1, external_outputs1 = _prune_connections(connections, model_path=model_path)
 
     conns2 = _process_connections(conns1, recurse=recurse, subs=subs)
-    print(conns2)
 
     external_inputs2 = _process_connections(external_inputs1, recurse=recurse, subs=subs)
     external_outputs2 = _process_connections(external_outputs1, recurse=recurse, subs=subs)
+
+    if driver is not None:
+        design_vars2 = _collect_connections(design_vars, recurse=recurse, model_path=model_path)
+        responses2 = _collect_connections(responses, recurse=recurse, model_path=model_path)
+    else:
+        design_vars2 = {}
+        responses2 = {}
+
+    if not include_indepvarcomps:
+        filtered_comp_names = [c['name'] for c in filtered_comps]
+
+        for src, tgts in design_vars2.copy().items():
+            if src in filtered_comp_names:
+                del design_vars2[src]
+
+        for src, tgts in conns2.copy().items():
+            if src in filtered_comp_names:
+                del conns2[src]
+
+        for src, tgts in external_inputs2.copy().items():
+            if src in filtered_comp_names:
+                del external_inputs2[src]
 
     def add_solver(solver_dct):
         # Adds a solver.
@@ -1481,9 +1503,6 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
         driver_label = driver
         driver_name = _format_name(driver)
         x.add_driver(name=driver_name, label=driver_label, driver_type=driver_type.lower())
-
-        design_vars2 = _collect_connections(design_vars, recurse=recurse, model_path=model_path)
-        responses2 = _collect_connections(responses, recurse=recurse, model_path=model_path)
 
         # Design variables
         for comp, conn_vars in design_vars2.items():
@@ -1787,7 +1806,7 @@ def _prune_connections(conns, model_path=None, sep='.'):
         return internal_conns, external_inputs, external_outputs
 
 
-def _get_comps(tree, model_path=None, recurse=True, include_solver=False, include_indep_varscomps=True):
+def _get_comps(tree, model_path=None, recurse=True, include_solver=False, include_indep_varcomps=True):
     """
     Return the components in the tree, optionally only those within the given model_path.
 
@@ -1888,9 +1907,18 @@ def _get_comps(tree, model_path=None, recurse=True, include_solver=False, includ
             top_level_tree = [c for c in children if c['name'] == next_path][0]
 
     get_children(top_level_tree)
-    if not include_indep_varscomps:
-        components = [c for c in components if c['component_type'] != 'indep']
-    return components
+
+    comps_filtered = []
+    if not include_indep_varcomps:  # Filter out IndepVarComps
+        comps_out = []
+        for c in components:
+            if c['component_type'] != 'indep':
+                comps_out.append(c)
+            else:
+                comps_filtered.append(c)
+        return comps_out, comps_filtered
+    else:
+        return components, comps_filtered
 
 
 def _replace_chars(name, substitutes):
