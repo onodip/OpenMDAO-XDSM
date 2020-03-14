@@ -1206,7 +1206,7 @@ def write_xdsm(data_source, filename, model_path=None, recurse=True,
         If true, for ExecComps their equations are shown in the diagram
         Defaults to False.
     include_indepvarcomps : bool, optional
-        Don't include IndepVarComps as system but only as inputs.
+        Include IndepVarComps as system but only as external inputs. If turned off, the XDSM is simpler.
         Defaults to True.
     writer_options : dict, optional
         Options passed to the writer class at initialization.
@@ -1370,7 +1370,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
         If true, for ExecComps their equations are shown in the diagram
         Defaults to False.
     include_indepvarcomps : bool, optional
-        Don't include IndepVarComps as system but only as inputs.
+        Include IndepVarComps as system but only as external inputs. If turned off, the XDSM is simpler.
         Defaults to True.
     writer_options : dict, optional
         Options passed to the writer class at initialization.
