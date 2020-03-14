@@ -27,7 +27,7 @@ functions and open them in the default browser and PDF viewer.
 
 ## OpenMDAO compatibility
 This package was created after the introduction of the OpenMDAO [plugin system][4]. In OpenMDAO versions between 
-2.7 and 3.0 it was part of the OpenMDAO package. The package is compatible  OpenMDAO versions above 3.0. 
+2.7 and 3.0 it was part of the OpenMDAO package. The package is compatible with OpenMDAO versions above 3.0. 
 
 [0]: http://mdolab.engin.umich.edu/content/xdsm-overview
 [1]: https://github.com/onodip/OpenMDAO-XDSM
