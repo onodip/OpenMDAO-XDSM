@@ -22,12 +22,18 @@ setup(
     install_requires=[
         'openmdao>=3.0.0',
     ],
+    extras_require={
+        'tex': [
+            'pyxdsm @ https://github.com/mdolab/pyXDSM/tarball/master',
+        ]
+    },
     packages=[
         'omxdsm',
     ],
     entry_points={
         'openmdao_command': [
             'xdsm=omxdsm.cmd:_xdsm_setup'
-        ]
+        ],
     },
+    include_package_data=True,
 )
