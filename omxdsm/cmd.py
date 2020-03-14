@@ -66,6 +66,8 @@ def _xdsm_setup_parser(parser):
                              'component blocks of the diagram.')
     parser.add_argument('--equations', action='store_true', dest='equations',
                         help='If true, for ExecComps their equations are shown in the diagram.')
+    parser.add_argument('--no_indepvarcomps', action='store_true', dest='no_indepvarcomps',
+                        help="Don't include IndepVarComps as system but only as inputs.")
 
 
 def _xdsm_cmd(options, user_args):
@@ -101,6 +103,7 @@ def _xdsm_cmd(options, user_args):
                        legend=options.legend,
                        class_names=options.class_names,
                        equations=options.equations,
+                       include_indepvarcomps=not options.no_indepvarcomps,
                        **kwargs)
             exit()
 

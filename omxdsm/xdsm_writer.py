@@ -1114,7 +1114,7 @@ def write_xdsm(data_source, filename, model_path=None, recurse=True,
                include_external_outputs=True, out_format='tex',
                include_solver=False, subs=_CHAR_SUBS, show_browser=True,
                add_process_conns=True, show_parallel=True, output_side=_DEFAULT_OUTPUT_SIDE,
-               legend=False, class_names=True, equations=False,
+               legend=False, class_names=True, equations=False, include_indepvarcomps=True,
                writer_options={}, **kwargs):
     """
     Write XDSM diagram of an optimization problem.
@@ -1205,6 +1205,9 @@ def write_xdsm(data_source, filename, model_path=None, recurse=True,
     equations : bool, optional
         If true, for ExecComps their equations are shown in the diagram
         Defaults to False.
+    include_indepvarcomps : bool, optional
+        Don't include IndepVarComps as system but only as inputs.
+        Defaults to True.
     writer_options : dict, optional
         Options passed to the writer class at initialization.
     **kwargs : dict
@@ -1293,7 +1296,8 @@ def write_xdsm(data_source, filename, model_path=None, recurse=True,
                        add_process_conns=add_process_conns, build_pdf=build_pdf,
                        show_parallel=show_parallel, driver_type=driver_type,
                        output_side=output_side, legend=legend, class_names=class_names,
-                       writer_options=writer_options, equations=equations, **kwargs)
+                       writer_options=writer_options, equations=equations, include_indepvarcomps=include_indepvarcomps,
+                       **kwargs)
 
 
 def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanup=True,
@@ -1301,7 +1305,8 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
                 include_external_outputs=True, subs=_CHAR_SUBS, writer='pyXDSM', show_browser=False,
                 add_process_conns=True, show_parallel=True, quiet=False, build_pdf=False,
                 output_side=_DEFAULT_OUTPUT_SIDE, driver_type='optimization', legend=False,
-                class_names=False, equations=False, writer_options={}, **kwargs):
+                class_names=False, equations=False, include_indepvarcomps=True,
+                writer_options={}, **kwargs):
     """
     XDSM writer. Components are extracted from the connections of the problem.
 
@@ -1364,6 +1369,9 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
     equations : bool, optional
         If true, for ExecComps their equations are shown in the diagram
         Defaults to False.
+    include_indepvarcomps : bool, optional
+        Don't include IndepVarComps as system but only as inputs.
+        Defaults to True.
     writer_options : dict, optional
         Options passed to the writer class at initialization.
     **kwargs : dict
@@ -1373,7 +1381,6 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
     -------
         BaseXDSMWriter
     """
-    include_indepvarcomps = False
 
     # TODO implement residuals
     # Box appearance
@@ -1421,17 +1428,23 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
             msg = 'Output side argument should be string or dictionary, instead it is a {}.'
             raise ValueError(msg.format(type(output_side)))
 
+    if driver is not None:
+        design_vars2 = _collect_connections(design_vars, recurse=recurse, model_path=model_path)
+        responses2 = _collect_connections(responses, recurse=recurse, model_path=model_path)
+    else:
+        design_vars2 = {}
+        responses2 = {}
+
     connections = viewer_data['connections_list']
     tree = viewer_data['tree']
 
     # Get the top level system to be transcripted to XDSM
     comps, filtered_comps = _get_comps(tree, model_path=model_path, recurse=recurse, include_solver=include_solver,
-                                       include_indep_varcomps=include_indepvarcomps)
+                                       include_indepvarcomps=include_indepvarcomps)
     if include_solver:
         # Add the top level solver
         top_level_solver = dict(tree)
-        top_level_solver.update({'comps': list(comps), 'abs_name': 'root@solver', 'index': 0,
-                                 'type': 'solver'})
+        top_level_solver.update({'comps': list(comps), 'abs_name': 'root@solver', 'index': 0, 'type': 'solver'})
         comps.insert(0, top_level_solver)  # Add top level solver
     comps_dct = {comp['abs_name']: comp for comp in comps if comp['type'] != 'solver'}
 
@@ -1444,27 +1457,22 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
     external_inputs2 = _process_connections(external_inputs1, recurse=recurse, subs=subs)
     external_outputs2 = _process_connections(external_outputs1, recurse=recurse, subs=subs)
 
-    if driver is not None:
-        design_vars2 = _collect_connections(design_vars, recurse=recurse, model_path=model_path)
-        responses2 = _collect_connections(responses, recurse=recurse, model_path=model_path)
-    else:
-        design_vars2 = {}
-        responses2 = {}
-
     if not include_indepvarcomps:
         filtered_comp_names = [c['name'] for c in filtered_comps]
 
-        for src, tgts in design_vars2.copy().items():
-            if src in filtered_comp_names:
-                del design_vars2[src]
-
         for src, tgts in conns2.copy().items():
             if src in filtered_comp_names:
+                if src in design_vars2:
+                    for tgt in tgts:
+                        dv_tgt = design_vars2.setdefault(tgt, [])
+                        dv_tgt += design_vars2[src]
+                    del design_vars2[src]
+                else:
+                    for tgt in tgts:
+                        var_names = conns2[src][tgt]
+                        var_names = [x.format_var_str(var, 'initial') for var in var_names]  # make them initial vals
+                        external_inputs2.setdefault(tgt, {}).setdefault(tgt, []).extend(var_names)
                 del conns2[src]
-
-        for src, tgts in external_inputs2.copy().items():
-            if src in filtered_comp_names:
-                del external_inputs2[src]
 
     def add_solver(solver_dct):
         # Adds a solver.
@@ -1806,7 +1814,7 @@ def _prune_connections(conns, model_path=None, sep='.'):
         return internal_conns, external_inputs, external_outputs
 
 
-def _get_comps(tree, model_path=None, recurse=True, include_solver=False, include_indep_varcomps=True):
+def _get_comps(tree, model_path=None, recurse=True, include_solver=False, include_indepvarcomps=True):
     """
     Return the components in the tree, optionally only those within the given model_path.
 
@@ -1825,6 +1833,8 @@ def _get_comps(tree, model_path=None, recurse=True, include_solver=False, includ
         Groups as black-box components and don't show their internal components.
     include_solver : bool, optional
         Defaults to False.
+    include_indepvarcomps : bool, optional
+         Defaults to True.
 
     Returns
     -------
@@ -1909,7 +1919,7 @@ def _get_comps(tree, model_path=None, recurse=True, include_solver=False, includ
     get_children(top_level_tree)
 
     comps_filtered = []
-    if not include_indep_varcomps:  # Filter out IndepVarComps
+    if not include_indepvarcomps:  # Filter out IndepVarComps
         comps_out = []
         for c in components:
             if c['component_type'] != 'indep':

@@ -253,6 +253,24 @@ class TestPyXDSMViewer(unittest.TestCase):
                    box_stacking='max_chars', box_width=15)
         self.assertTrue(os.path.isfile('.'.join([filename, PYXDSM_OUT])))
 
+    def test_no_indepvarcomps(self):
+        prob = om.Problem()
+        prob.model = model = SellarNoDerivatives()
+        model.add_design_var('z', lower=np.array([-10.0, 0.0]),
+                             upper=np.array([10.0, 10.0]), indices=np.arange(2, dtype=int))
+        # model.add_design_var('x', lower=0.0, upper=10.0)
+        model.add_objective('obj')
+        model.add_constraint('con1', equals=np.zeros(1))
+        model.add_constraint('con2', upper=0.0)
+
+        prob.setup()
+        prob.final_setup()
+
+        filename = 'pyxdsm_no_indepvarcomps'
+        write_xdsm(prob, filename=filename, out_format='pdf', show_browser=SHOW,
+                   quiet=True, include_indepvarcomps=False)
+        self.assertTrue(os.path.isfile('.'.join([filename, PYXDSM_OUT])))
+
     def test_model_path_and_recursion(self):
 
         import openmdao.api as om
