@@ -1423,7 +1423,8 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
     tree = viewer_data['tree']
 
     # Get the top level system to be transcripted to XDSM
-    comps = _get_comps(tree, model_path=model_path, recurse=recurse, include_solver=include_solver)
+    comps = _get_comps(tree, model_path=model_path, recurse=recurse, include_solver=include_solver,
+                       include_indep_varscomps=False)
     if include_solver:
         # Add the top level solver
         top_level_solver = dict(tree)
@@ -1438,6 +1439,8 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
                                                                      model_path=model_path)
 
     conns2 = _process_connections(conns1, recurse=recurse, subs=subs)
+    print(conns2)
+
     external_inputs2 = _process_connections(external_inputs1, recurse=recurse, subs=subs)
     external_outputs2 = _process_connections(external_outputs1, recurse=recurse, subs=subs)
 
@@ -1784,7 +1787,7 @@ def _prune_connections(conns, model_path=None, sep='.'):
         return internal_conns, external_inputs, external_outputs
 
 
-def _get_comps(tree, model_path=None, recurse=True, include_solver=False):
+def _get_comps(tree, model_path=None, recurse=True, include_solver=False, include_indep_varscomps=True):
     """
     Return the components in the tree, optionally only those within the given model_path.
 
@@ -1885,6 +1888,8 @@ def _get_comps(tree, model_path=None, recurse=True, include_solver=False):
             top_level_tree = [c for c in children if c['name'] == next_path][0]
 
     get_children(top_level_tree)
+    if not include_indep_varscomps:
+        components = [c for c in components if c['component_type'] != 'indep']
     return components
 
 
