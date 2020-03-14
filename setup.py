@@ -1,6 +1,6 @@
 from setuptools import setup
 
-__version__ = "0.1"
+__version__ = "0.2"
 __author__ = 'Peter Onodi'
 
 setup(
@@ -20,7 +20,7 @@ setup(
         'Programming Language :: Python',
     ],
     install_requires=[
-        'openmdao>=3.0.0',
+        'openmdao',  # 3.0.0-dev or above
     ],
     extras_require={
         'tex': [
