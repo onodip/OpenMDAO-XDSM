@@ -34,19 +34,18 @@ _XDSMJS_PATH = os.path.join(_DIR, 'XDSMjs')
 # Writer is chosen based on the output format
 _OUT_FORMATS = {'tex': 'pyxdsm', 'pdf': 'pyxdsm', 'json': 'xdsmjs', 'html': 'xdsmjs'}
 
-# Variable formatting settings
-_SUPERSCRIPTS = {'optimal': '*', 'initial': '(0)', 'target': 't', 'consistency': 'c'}
+# Variable formatting settings. Last item is used to pass the character substitution  step without changes in the string
+_SUPERSCRIPTS = {'optimal': '*', 'initial': '(0)', 'target': 't', 'consistency': 'c', 'initial0': '#INIT#'}
 
 # Character substitutions in labels
 # pyXDSM:
 # Interpreted as TeX syntax
 # Underscore is replaced with a skipped underscore
 # Round parenthesis is replaced with subscript syntax, e.g. x(1) --> x_{1}
-# First and last element ensures that the init symbol stays unformatted
 _CHAR_SUBS = {
-    'pyxdsm': ((_SUPERSCRIPTS['initial'], '#INIT#'), ('_', r'\_'), ('(', '_{'), (')', '}'),
-               ('#INIT#', _SUPERSCRIPTS['initial'])),
-    'xdsmjs': ((' ', '-'), (':', ''), ('_', r'\_'),),
+    'pyxdsm': (('_', r'\_'), ('(', '_{'), (')', '}'),
+               (_SUPERSCRIPTS['initial0'], _SUPERSCRIPTS['initial'])),
+    'xdsmjs': ((' ', '-'), (':', ''), ('_', r'\_'), (_SUPERSCRIPTS['initial0'], _SUPERSCRIPTS['initial'])),
 }
 
 # Default solver, if no solver is added to a group.
@@ -59,6 +58,7 @@ _DEFAULT_WRITER = 'pyxdsm'
 # Maps OpenMDAO component types with the available block styling options in the writer.
 # For pyXDSM check the "diagram_styles" file for style definitions.
 # For XDSMjs check the CSS style sheets.
+# 'indep' is used only if include_indepvarcomps is turned on.
 _COMPONENT_TYPE_MAP = {
     'pyxdsm': {  # Newest release
         'indep': 'Function',
@@ -356,8 +356,6 @@ class XDSMjsWriter(AbstractXDSMWriter):
         Component names.
     _ul : str
         Name of the virtual first element.
-    _br : str
-        Name of the virtual last component.
     _multi_suffix : str
         If component ends with this string, it will be treated as a parallel component.
     reserved_words : tuple
@@ -1474,7 +1472,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
                 else:
                     for tgt in tgts:
                         var_names = conns2[src][tgt]
-                        var_names = [x.format_var_str(var, 'initial') for var in var_names]  # make them initial vals
+                        var_names = [x.format_var_str(var, 'initial0') for var in var_names]  # make them initial vals
                         external_inputs2.setdefault(tgt, {}).setdefault(tgt, []).extend(var_names)
                 del conns2[src]
 
