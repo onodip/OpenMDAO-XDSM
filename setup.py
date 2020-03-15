@@ -21,6 +21,7 @@ setup(
     ],
     install_requires=[
         'openmdao',  # 3.0.0-dev or above
+        'numpy',
     ],
     extras_require={
         'tex': [
