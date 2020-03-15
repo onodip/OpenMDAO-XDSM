@@ -183,6 +183,210 @@ class TestPyXDSMViewer(unittest.TestCase):
         # Check if PDF was created (only if pdflatex is installed)
         self.assertTrue(not pdflatex or os.path.isfile('.'.join([filename, 'pdf'])))
 
+    def test_pyxdsm_tikz_content(self):
+        # Check if TiKZ file was created.
+        # Compare the content of the sample below and the newly created TiKZ file.
+        # The texts are cleaned up before comparison from whitespaces, line ends and comments
+        # Despite this different versions of pyxdsm *might* produce different outputs. If the test fails for you,
+        # it might be that the program still produces the correct output.
+        # The ordering of some lines might be different at different runs, but the test should work regardless
+        # of these changes.
+        # The sample text should be replaced if changes in the formatting or in the test problem are made.
+
+        tikz_txt = r"""
+        
+            %%% Preamble Requirements %%%
+            % \usepackage{geometry}
+            % \usepackage{amsfonts}
+            % \usepackage{amsmath}
+            % \usepackage{amssymb}
+            % \usepackage{tikz}
+            
+            % Optional packages such as sfmath set through python interface
+            % \usepackage{sfmath}
+            
+            % \usetikzlibrary{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}
+            
+            %%% End Preamble Requirements %%%
+            
+            \input{D:/Documents/GitHub/OpenMDAO-XDSM/venv_py/lib/site-packages/pyxdsm/diagram_styles}
+            \begin{tikzpicture}
+            
+            \matrix[MatrixSetup]{
+            %Row 0
+            \node [Optimization] (Driver) {$\text{\text{0, 10 $ \rightarrow $ 1: Driver}}$};&
+            &
+            &
+            &
+            &
+            &
+            &
+            \\
+            %Row 1
+            &
+            \node [Function] (indeps) {$\begin{array}{c}\text{1: indeps} \\ \text{\textit{IndepVarComp}}\end{array}$};&
+            &
+            \node [DataInter] (indeps-cycle@d1) {$\begin{array}{c}x, z\end{array}$};&
+            \node [DataInter] (indeps-cycle@d2) {$\begin{array}{c}z\end{array}$};&
+            \node [DataInter] (indeps-obj@cmp) {$\begin{array}{c}x, z\end{array}$};&
+            &
+            \\
+            %Row 2
+            &
+            &
+            \node [MDA] (cycle@solver) {$\text{\text{2, 5 $ \rightarrow $ 3: NL: NLBGS}}$};&
+            \node [DataInter] (cycle@solver-cycle@d1) {$\begin{array}{c}y2^{t}\end{array}$};&
+            \node [DataInter] (cycle@solver-cycle@d2) {$\begin{array}{c}y1^{t}\end{array}$};&
+            &
+            &
+            \\
+            %Row 3
+            &
+            &
+            \node [DataInter] (cycle@d1-cycle@solver) {$\begin{array}{c}y1\end{array}$};&
+            \node [Function] (cycle@d1) {$\begin{array}{c}\text{3: d1} \\ \text{\textit{SellarDis1}}\end{array}$};&
+            \node [DataInter] (cycle@d1-cycle@d2) {$\begin{array}{c}y1\end{array}$};&
+            \node [DataInter] (cycle@d1-obj@cmp) {$\begin{array}{c}y1\end{array}$};&
+            \node [DataInter] (cycle@d1-con@cmp1) {$\begin{array}{c}y1\end{array}$};&
+            \\
+            %Row 4
+            &
+            &
+            \node [DataInter] (cycle@d2-cycle@solver) {$\begin{array}{c}y2\end{array}$};&
+            \node [DataInter] (cycle@d2-cycle@d1) {$\begin{array}{c}y2\end{array}$};&
+            \node [Function] (cycle@d2) {$\begin{array}{c}\text{4: d2} \\ \text{\textit{SellarDis2}}\end{array}$};&
+            \node [DataInter] (cycle@d2-obj@cmp) {$\begin{array}{c}y2\end{array}$};&
+            &
+            \node [DataInter] (cycle@d2-con@cmp2) {$\begin{array}{c}y2\end{array}$};\\
+            %Row 5
+            &
+            &
+            &
+            &
+            &
+            \node [Function] (obj@cmp) {$\begin{array}{c}\text{6: obj\_cmp} \\ \text{\textit{ExecComp}}\end{array}$};&
+            &
+            \\
+            %Row 6
+            &
+            &
+            &
+            &
+            &
+            &
+            \node [Function] (con@cmp1) {$\begin{array}{c}\text{7: con\_cmp1} \\ \text{\textit{ExecComp}}\end{array}$};&
+            \\
+            %Row 7
+            &
+            &
+            &
+            &
+            &
+            &
+            &
+            \node [Function] (con@cmp2) {$\begin{array}{c}\text{8: con\_cmp2} \\ \text{\textit{ExecComp}}\end{array}$};\\
+            };
+            
+            % XDSM process chains
+            { [start chain=process]
+             \begin{pgfonlayer}{process} 
+            \chainin (Driver);
+            \chainin (indeps) [join=by ProcessHV];
+            \chainin (cycle@solver) [join=by ProcessHV];
+            \chainin (obj@cmp) [join=by ProcessHV];
+            \chainin (con@cmp1) [join=by ProcessHV];
+            \chainin (con@cmp2) [join=by ProcessHV];
+            \chainin (Driver) [join=by ProcessHV];
+            \end{pgfonlayer}
+            }{ [start chain=process]
+             \begin{pgfonlayer}{process} 
+            \chainin (cycle@solver);
+            \chainin (cycle@d1) [join=by ProcessHV];
+            \chainin (cycle@d2) [join=by ProcessHV];
+            \chainin (cycle@solver) [join=by ProcessHV];
+            \end{pgfonlayer}
+            }
+            
+            \begin{pgfonlayer}{data}
+            \path
+            % Horizontal edges
+            (cycle@solver) edge [DataLine] (cycle@solver-cycle@d2)
+            (cycle@d1) edge [DataLine] (cycle@d1-cycle@solver)
+            (cycle@solver) edge [DataLine] (cycle@solver-cycle@d1)
+            (cycle@d2) edge [DataLine] (cycle@d2-cycle@solver)
+            (cycle@d1) edge [DataLine] (cycle@d1-obj@cmp)
+            (cycle@d1) edge [DataLine] (cycle@d1-con@cmp1)
+            (cycle@d1) edge [DataLine] (cycle@d1-cycle@d2)
+            (cycle@d2) edge [DataLine] (cycle@d2-obj@cmp)
+            (cycle@d2) edge [DataLine] (cycle@d2-con@cmp2)
+            (cycle@d2) edge [DataLine] (cycle@d2-cycle@d1)
+            (indeps) edge [DataLine] (indeps-cycle@d1)
+            (indeps) edge [DataLine] (indeps-obj@cmp)
+            (indeps) edge [DataLine] (indeps-cycle@d2)
+            % Vertical edges
+            (cycle@solver-cycle@d2) edge [DataLine] (cycle@d2)
+            (cycle@d1-cycle@solver) edge [DataLine] (cycle@solver)
+            (cycle@solver-cycle@d1) edge [DataLine] (cycle@d1)
+            (cycle@d2-cycle@solver) edge [DataLine] (cycle@solver)
+            (cycle@d1-obj@cmp) edge [DataLine] (obj@cmp)
+            (cycle@d1-con@cmp1) edge [DataLine] (con@cmp1)
+            (cycle@d1-cycle@d2) edge [DataLine] (cycle@d2)
+            (cycle@d2-obj@cmp) edge [DataLine] (obj@cmp)
+            (cycle@d2-con@cmp2) edge [DataLine] (con@cmp2)
+            (cycle@d2-cycle@d1) edge [DataLine] (cycle@d1)
+            (indeps-cycle@d1) edge [DataLine] (cycle@d1)
+            (indeps-obj@cmp) edge [DataLine] (obj@cmp)
+            (indeps-cycle@d2) edge [DataLine] (cycle@d2);
+            \end{pgfonlayer}
+            
+            \end{tikzpicture}"""
+
+        def filter_lines(lns):
+            # Empty lines are excluded.
+            # Leading and trailing whitespaces are removed
+            # Comments are removed.
+            return [ln.strip() for ln in lns if ln.strip() and not ln.strip().startswith('%')]
+
+        filename = 'pyxdsm_mda_tikz'
+        out_format = PYXDSM_OUT
+        prob = om.Problem(model=SellarMDA())
+        prob.setup()
+        prob.final_setup()
+
+        # Write output
+        write_xdsm(prob, filename=filename, out_format=out_format, quiet=QUIET,
+                   show_browser=SHOW, include_solver=True)
+        # Check if file was created
+        tikz_file = '.'.join([filename, 'tikz'])
+
+        self.assertTrue(os.path.isfile(tikz_file))
+
+        tikz_lines = tikz_txt.split('\n')
+        tikz_lines = filter_lines(tikz_lines)
+
+        with open(tikz_file, "r") as f:
+            lines = filter_lines(f.readlines())
+
+        no_match1 = []  # Sample text
+        no_match2 = []  # New text
+
+        for line1, line2 in zip(lines, tikz_lines):
+            if line1 != line2:  # else everything is okay
+                # This can be because of the different ordering of lines or because of an error.
+                no_match1.append(line1)
+                no_match2.append(line2)
+
+        # Sort both sets of suspicious lines
+        no_match1.sort()
+        no_match2.sort()
+
+        for line1, line2 in zip(no_match1, no_match2):
+            # Now the lines should match, if only the ordering was different
+            self.assertEquals(line1, line2)
+
+        # To be sure, check the length, otherwise a missing last line could get unnoticed because of using zip
+        self.assertEquals(len(lines), len(tikz_lines))
+
     def test_pyxdsm_identical_relative_names(self):
         class TimeComp(om.ExplicitComponent):
 

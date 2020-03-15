@@ -34,7 +34,9 @@ _XDSMJS_PATH = os.path.join(_DIR, 'XDSMjs')
 # Writer is chosen based on the output format
 _OUT_FORMATS = {'tex': 'pyxdsm', 'pdf': 'pyxdsm', 'json': 'xdsmjs', 'html': 'xdsmjs'}
 
-# Variable formatting settings. Last item is used to pass the character substitution  step without changes in the string
+# Variable formatting settings.
+# Last item (initial0) is used to pass the character substitution  step without changes in the string.
+# This string won't appear on the XDSM. Variable names should not contain this substring.
 _SUPERSCRIPTS = {'optimal': '*', 'initial': '(0)', 'target': 't', 'consistency': 'c', 'initial0': '#INIT#'}
 
 # Character substitutions in labels
@@ -43,8 +45,7 @@ _SUPERSCRIPTS = {'optimal': '*', 'initial': '(0)', 'target': 't', 'consistency':
 # Underscore is replaced with a skipped underscore
 # Round parenthesis is replaced with subscript syntax, e.g. x(1) --> x_{1}
 _CHAR_SUBS = {
-    'pyxdsm': (('_', r'\_'), ('(', '_{'), (')', '}'),
-               (_SUPERSCRIPTS['initial0'], _SUPERSCRIPTS['initial'])),
+    'pyxdsm': (('_', r'\_'), ('(', '_{'), (')', '}'), (_SUPERSCRIPTS['initial0'], _SUPERSCRIPTS['initial'])),
     'xdsmjs': ((' ', '-'), (':', ''), ('_', r'\_'), (_SUPERSCRIPTS['initial0'], _SUPERSCRIPTS['initial'])),
 }
 
@@ -492,9 +493,9 @@ class XDSMjsWriter(AbstractXDSMWriter):
             Name of the system
         style : str
             Block formatting style.
-        label : str
+        label : str, optional
             Label in the XDSM, defaults to the name of the component.
-        stack : bool
+        stack : bool, optional
             True for parallel.
             Defaults to False.
         **kwargs : dict
@@ -547,11 +548,11 @@ class XDSMjsWriter(AbstractXDSMWriter):
         ----------
         name : str
             Target name.
-        label : str
+        label : str, optional
             Label for connection.
-        style : str
+        style : str, optional
             Formatting style.
-        stack : bool
+        stack : bool, optional
             True for parallel.
             Defaults to False.
         """
@@ -565,14 +566,14 @@ class XDSMjsWriter(AbstractXDSMWriter):
         ----------
         name : str
             Target name.
-        label : str
+        label : str, optional
             Label for connection.
-        style : str
+        style : str, optional
             Formatting style.
-        stack : bool
+        stack : bool, optional
             True for parallel.
             Defaults to False.
-        side : str
+        side : str, optional
             Location of output, either 'left' or 'right'.
         """
         if side == "left":
@@ -713,6 +714,7 @@ else:
                 from pyxdsm import __version__ as pyxdsm_version
                 self._pyxdsm_version = pyxdsm_version
             except ImportError:
+                # Older pyxdsm did not have a version attribute
                 self._pyxdsm_version = pyxdsm_version = '1.0.0'
 
             if LooseVersion(pyxdsm_version) > LooseVersion('1.0.0'):
