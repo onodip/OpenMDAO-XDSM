@@ -32,6 +32,8 @@ functions and open them in the default browser and PDF viewer.
 ## OpenMDAO compatibility
 This package was created after the introduction of the OpenMDAO [plugin system][4]. In OpenMDAO versions between 
 2.7 and 3.0 it was part of the OpenMDAO package. The package is compatible with OpenMDAO versions above 3.0. 
+OpenMDAO-XDSM should be able to vizualize Case Recorder data from older versions (at least >=2.7), although some 
+vizualization options might not be available.
 
 [0]: http://mdolab.engin.umich.edu/content/xdsm-overview
 [1]: https://github.com/onodip/OpenMDAO-XDSM
