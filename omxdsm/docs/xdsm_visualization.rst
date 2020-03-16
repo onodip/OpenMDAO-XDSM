@@ -50,7 +50,7 @@ viewable in a browser, for example:
 
 .. code-block:: none
 
-    openmdao xdsm openmdao/test_suite/scripts/circuit_with_unconnected_input.py
+    openmdao xdsm omxdsm/examples/circuit_with_unconnected_input.py
 
 will generate an XDSM diagram like the one below.
 

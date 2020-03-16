@@ -1,6 +1,10 @@
 # OpenMDAO-XDSM
 [XDSM][0] viewer plugin for [OpenMDAO][5].
 
+Example of the Sellar problem modeled in OpenMDAO and vizualized with this package:
+ 
+![XDSM diagram](omxdsm/examples/screenshots/sellar_pyxdsm.PNG)
+
 More detailed documentation can be found in the `omxdsm/docs` folder.
 
 ## Installation

@@ -1,0 +1,96 @@
+
+%%% Preamble Requirements %%%
+% \usepackage{geometry}
+% \usepackage{amsfonts}
+% \usepackage{amsmath}
+% \usepackage{amssymb}
+% \usepackage{tikz}
+
+% Optional packages such as sfmath set through python interface
+% \usepackage{sfmath}
+
+% \usetikzlibrary{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}
+
+%%% End Preamble Requirements %%%
+
+\input{d:/documents/github/openmdao-xdsm/venv_py/lib/site-packages/pyxdsm/diagram_styles}
+\begin{tikzpicture}
+
+\matrix[MatrixSetup]{
+%Row 0
+&
+\node [DataIO] (output_Driver) {$\begin{array}{c}I^{(0)}\end{array}$};&
+&
+&
+&
+\\
+%Row 1
+\node [DataIO] (left_output_Driver) {$\begin{array}{c}I^{*}\end{array}$};&
+\node [Optimization] (Driver) {$\text{\text{Driver}}$};&
+\node [DataInter] (Driver-ground) {$\begin{array}{c}V\end{array}$};&
+\node [DataInter] (Driver-source) {$\begin{array}{c}I\end{array}$};&
+&
+\\
+%Row 2
+\node [DataIO] (left_output_ground) {$\begin{array}{c}V^{*}\end{array}$};&
+&
+\node [Function] (ground) {$\text{\text{ground}}$};&
+&
+\node [DataInter] (ground-circuit) {$\begin{array}{c}V\end{array}$};&
+\\
+%Row 3
+\node [DataIO] (left_output_source) {$\begin{array}{c}I^{*}\end{array}$};&
+&
+&
+\node [Function] (source) {$\text{\text{source}}$};&
+\node [DataInter] (source-circuit) {$\begin{array}{c}I\end{array}$};&
+\\
+%Row 4
+\node [DataIO] (left_output_circuit) {$\begin{array}{c}I^{*}\end{array}$};&
+\node [DataInter] (circuit-Driver) {$\begin{array}{c}I\end{array}$};&
+&
+&
+\node [Group] (circuit) {$\text{\text{circuit}}$};&
+\\
+%Row 5
+&
+&
+&
+&
+&
+\\
+};
+
+% XDSM process chains
+{ [start chain=process]
+ \begin{pgfonlayer}{process} 
+\chainin (Driver);
+\chainin (ground) [join=by ProcessHV];
+\chainin (source) [join=by ProcessHV];
+\chainin (circuit) [join=by ProcessHV];
+\chainin (Driver) [join=by ProcessHV];
+\end{pgfonlayer}
+}
+
+\begin{pgfonlayer}{data}
+\path
+% Horizontal edges
+(Driver) edge [DataLine] (Driver-ground)
+(Driver) edge [DataLine] (Driver-source)
+(circuit) edge [DataLine] (circuit-Driver)
+(ground) edge [DataLine] (ground-circuit)
+(source) edge [DataLine] (source-circuit)
+(ground) edge [DataLine] (left_output_ground)
+(Driver) edge [DataLine] (left_output_Driver)
+(source) edge [DataLine] (left_output_source)
+(circuit) edge [DataLine] (left_output_circuit)
+% Vertical edges
+(Driver-ground) edge [DataLine] (ground)
+(Driver-source) edge [DataLine] (source)
+(circuit-Driver) edge [DataLine] (Driver)
+(ground-circuit) edge [DataLine] (circuit)
+(source-circuit) edge [DataLine] (circuit)
+(Driver) edge [DataLine] (output_Driver);
+\end{pgfonlayer}
+
+\end{tikzpicture}
