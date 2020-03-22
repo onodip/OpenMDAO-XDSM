@@ -40,8 +40,8 @@ class TestPyXDSMViewer(unittest.TestCase):
         """Makes XDSM for the Sellar problem"""
         p = om.Problem()
         p.model = model = SellarNoDerivatives()
-        model.add_design_var('z', lower=np.array([-10.0, 0.0]),
-                             upper=np.array([10.0, 10.0]), indices=np.arange(2, dtype=int))
+        model.add_design_var('z', lower=np.array([-10.0, 0.0]), upper=np.array([10.0, 10.0]),
+                             indices=np.arange(2, dtype=int))
         model.add_design_var('x', lower=0.0, upper=10.0)
         model.add_objective('obj')
         model.add_constraint('con1', equals=np.zeros(1))
@@ -113,8 +113,8 @@ class TestPyXDSMViewer(unittest.TestCase):
         filename = 'xdsm1'
         p = om.Problem()
         p.model = model = SellarNoDerivatives()
-        model.add_design_var('z', lower=np.array([-10.0, 0.0]),
-                             upper=np.array([10.0, 10.0]), indices=np.arange(2, dtype=int))
+        model.add_design_var('z', lower=np.array([-10.0, 0.0]), upper=np.array([10.0, 10.0]),
+                             indices=np.arange(2, dtype=int))
         model.add_design_var('x', lower=0.0, upper=10.0)
         model.add_objective('obj')
         model.add_constraint('con1', equals=np.zeros(1))
@@ -135,12 +135,7 @@ class TestPyXDSMViewer(unittest.TestCase):
         objective.
         """
 
-        class Rosenbrock(om.ExplicitComponent):
-
-            def __init__(self, problem):
-                super(Rosenbrock, self).__init__()
-                self.problem = problem
-                self.counter = 0
+        class Square(om.ExplicitComponent):
 
             def setup(self):
                 self.add_input('x', np.array([1.5, 1.5]))
@@ -155,10 +150,10 @@ class TestPyXDSMViewer(unittest.TestCase):
         filename = 'xdsm2'
 
         p = om.Problem()
-        indeps = p.model.add_subsystem('indeps', om.IndepVarComp(problem=p), promotes=['*'])
+        indeps = p.model.add_subsystem('indeps', om.IndepVarComp(), promotes=['*'])
         indeps.add_output('x', list(x0))
 
-        p.model.add_subsystem('sphere', Rosenbrock(problem=p), promotes=['*'])
+        p.model.add_subsystem('sphere', Square(), promotes=['*'])
         p.model.add_subsystem('con', om.ExecComp('c=sum(x)', x=np.ones(2)), promotes=['*'])
         p.driver = om.ScipyOptimizeDriver()
         p.model.add_design_var('x')
@@ -590,10 +585,8 @@ class TestPyXDSMViewer(unittest.TestCase):
                 indeps.add_output('x', 1.0)
                 indeps.add_output('z', np.array([5.0, 2.0]))
                 cycle = self.add_subsystem('cycle', om.ParallelGroup(), promotes=['*'])
-                cycle.add_subsystem('d1', SellarDis1(), promotes_inputs=['x', 'z', 'y2'],
-                                    promotes_outputs=['y1'])
-                cycle.add_subsystem('d2', SellarDis2(), promotes_inputs=['z', 'y1'],
-                                    promotes_outputs=['y2'])
+                cycle.add_subsystem('d1', SellarDis1(), promotes_inputs=['x', 'z', 'y2'], promotes_outputs=['y1'])
+                cycle.add_subsystem('d2', SellarDis2(), promotes_inputs=['z', 'y1'], promotes_outputs=['y2'])
 
                 # Nonlinear Block Gauss Seidel is a gradient free solver
                 cycle.nonlinear_solver = om.NonlinearBlockGS()
@@ -602,10 +595,8 @@ class TestPyXDSMViewer(unittest.TestCase):
                                                           z=np.array([0.0, 0.0]), x=0.0),
                                    promotes=['x', 'z', 'y1', 'y2', 'obj'])
 
-                self.add_subsystem('con_cmp1', om.ExecComp('con1 = 3.16 - y1'),
-                                   promotes=['con1', 'y1'])
-                self.add_subsystem('con_cmp2', om.ExecComp('con2 = y2 - 24.0'),
-                                   promotes=['con2', 'y2'])
+                self.add_subsystem('con_cmp1', om.ExecComp('con1 = 3.16 - y1'), promotes=['con1', 'y1'])
+                self.add_subsystem('con_cmp2', om.ExecComp('con2 = y2 - 24.0'), promotes=['con2', 'y2'])
 
         filename = 'pyxdsm_parallel'
         out_format = PYXDSM_OUT
@@ -974,10 +965,8 @@ class TestXDSMjsViewer(unittest.TestCase):
                 indeps.add_output('x', 1.0)
                 indeps.add_output('z', np.array([5.0, 2.0]))
                 cycle = self.add_subsystem('cycle', om.ParallelGroup(), promotes=['*'])
-                cycle.add_subsystem('d1', SellarDis1(), promotes_inputs=['x', 'z', 'y2'],
-                                    promotes_outputs=['y1'])
-                cycle.add_subsystem('d2', SellarDis2(), promotes_inputs=['z', 'y1'],
-                                    promotes_outputs=['y2'])
+                cycle.add_subsystem('d1', SellarDis1(), promotes_inputs=['x', 'z', 'y2'], promotes_outputs=['y1'])
+                cycle.add_subsystem('d2', SellarDis2(), promotes_inputs=['z', 'y1'], promotes_outputs=['y2'])
 
                 # Nonlinear Block Gauss Seidel is a gradient free solver
                 cycle.nonlinear_solver = om.NonlinearBlockGS()
@@ -986,10 +975,8 @@ class TestXDSMjsViewer(unittest.TestCase):
                                                           z=np.array([0.0, 0.0]), x=0.0),
                                    promotes=['x', 'z', 'y1', 'y2', 'obj'])
 
-                self.add_subsystem('con_cmp1', om.ExecComp('con1 = 3.16 - y1'),
-                                   promotes=['con1', 'y1'])
-                self.add_subsystem('con_cmp2', om.ExecComp('con2 = y2 - 24.0'),
-                                   promotes=['con2', 'y2'])
+                self.add_subsystem('con_cmp1', om.ExecComp('con1 = 3.16 - y1'), promotes=['con1', 'y1'])
+                self.add_subsystem('con_cmp2', om.ExecComp('con2 = y2 - 24.0'), promotes=['con2', 'y2'])
 
         filename = 'xdsmjs_parallel'
         out_format = 'html'
@@ -1147,8 +1134,8 @@ class TestXDSMjsViewer(unittest.TestCase):
                    legend=True)
         self.assertTrue(os.path.isfile('xdsmjs_circuit_legend' + '.html'))
 
-        write_xdsm(p, 'xdsmjs_circuit_class_names', out_format='html', quiet=QUIET,
-                   show_browser=SHOW, recurse=True, class_names=True)
+        write_xdsm(p, 'xdsmjs_circuit_class_names', out_format='html', quiet=QUIET, show_browser=SHOW, recurse=True,
+                   class_names=True)
         self.assertTrue(os.path.isfile('xdsmjs_circuit_class_names' + '.html'))
 
     def test_xdsmjs_right_outputs(self):
@@ -1156,8 +1143,8 @@ class TestXDSMjsViewer(unittest.TestCase):
         filename = 'xdsmjs_outputs_on_the_right'
         p = om.Problem()
         p.model = model = SellarNoDerivatives()
-        model.add_design_var('z', lower=np.array([-10.0, 0.0]),
-                             upper=np.array([10.0, 10.0]), indices=np.arange(2, dtype=int))
+        model.add_design_var('z', lower=np.array([-10.0, 0.0]), upper=np.array([10.0, 10.0]),
+                             indices=np.arange(2, dtype=int))
         model.add_design_var('x', lower=0.0, upper=10.0)
         model.add_objective('obj')
         model.add_constraint('con1', equals=np.zeros(1))
