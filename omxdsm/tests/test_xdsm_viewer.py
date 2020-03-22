@@ -450,8 +450,8 @@ class TestPyXDSMViewer(unittest.TestCase):
     def test_no_indepvarcomps(self):
         p = om.Problem()
         p.model = model = SellarNoDerivatives()
-        model.add_design_var('z', lower=np.array([-10.0, 0.0]),
-                             upper=np.array([10.0, 10.0]), indices=np.arange(2, dtype=int))
+        model.add_design_var('z', lower=np.array([-10.0, 0.0]), upper=np.array([10.0, 10.0]),
+                             indices=np.arange(2, dtype=int))
         # model.add_design_var('x', lower=0.0, upper=10.0)
         model.add_objective('obj')
         model.add_constraint('con1', equals=np.zeros(1))
@@ -604,8 +604,8 @@ class TestPyXDSMViewer(unittest.TestCase):
         model = p.model
         p.driver = om.ScipyOptimizeDriver()
 
-        model.add_design_var('z', lower=np.array([-10.0, 0.0]),
-                             upper=np.array([10.0, 10.0]), indices=np.arange(2, dtype=int))
+        model.add_design_var('z', lower=np.array([-10.0, 0.0]), upper=np.array([10.0, 10.0]),
+                             indices=np.arange(2, dtype=int))
         model.add_design_var('x', lower=0.0, upper=10.0)
         model.add_objective('obj')
         model.add_constraint('con1', equals=np.zeros(1))
@@ -715,8 +715,8 @@ class TestXDSMjsViewer(unittest.TestCase):
         filename = 'xdsmjs'  # this name is needed for XDSMjs
         p = om.Problem()
         p.model = model = SellarNoDerivatives()
-        model.add_design_var('z', lower=np.array([-10.0, 0.0]),
-                             upper=np.array([10.0, 10.0]), indices=np.arange(2, dtype=int))
+        model.add_design_var('z', lower=np.array([-10.0, 0.0]), upper=np.array([10.0, 10.0]),
+                             indices=np.arange(2, dtype=int))
         model.add_design_var('x', lower=0.0, upper=10.0)
         model.add_objective('obj')
         model.add_constraint('con1', equals=np.zeros(1))
@@ -742,8 +742,8 @@ class TestXDSMjsViewer(unittest.TestCase):
         filename = 'xdsmjs_embedded'  # this name is needed for XDSMjs
         p = om.Problem()
         p.model = model = SellarNoDerivatives()
-        model.add_design_var('z', lower=np.array([-10.0, 0.0]),
-                             upper=np.array([10.0, 10.0]), indices=np.arange(2, dtype=int))
+        model.add_design_var('z', lower=np.array([-10.0, 0.0]), upper=np.array([10.0, 10.0]),
+                             indices=np.arange(2, dtype=int))
         model.add_design_var('x', lower=0.0, upper=10.0)
         model.add_objective('obj')
         model.add_constraint('con1', equals=np.zeros(1))
@@ -768,8 +768,8 @@ class TestXDSMjsViewer(unittest.TestCase):
         filename = 'xdsmjs_embeddable'  # this name is needed for XDSMjs
         p = om.Problem()
         p.model = model = SellarNoDerivatives()
-        model.add_design_var('z', lower=np.array([-10.0, 0.0]),
-                             upper=np.array([10.0, 10.0]), indices=np.arange(2, dtype=int))
+        model.add_design_var('z', lower=np.array([-10.0, 0.0]), upper=np.array([10.0, 10.0]),
+                             indices=np.arange(2, dtype=int))
         model.add_design_var('x', lower=0.0, upper=10.0)
         model.add_objective('obj')
         model.add_constraint('con1', equals=np.zeros(1))
@@ -919,8 +919,8 @@ class TestXDSMjsViewer(unittest.TestCase):
         model = p.model
         p.driver = om.ScipyOptimizeDriver()
 
-        model.add_design_var('z', lower=np.array([-10.0, 0.0]),
-                             upper=np.array([10.0, 10.0]), indices=np.arange(2, dtype=int))
+        model.add_design_var('z', lower=np.array([-10.0, 0.0]), upper=np.array([10.0, 10.0]),
+                             indices=np.arange(2, dtype=int))
         model.add_design_var('x', lower=0.0, upper=10.0)
         model.add_objective('obj')
         model.add_constraint('con1', equals=np.zeros(1))
@@ -984,8 +984,8 @@ class TestXDSMjsViewer(unittest.TestCase):
         model = p.model
         p.driver = om.ScipyOptimizeDriver()
 
-        model.add_design_var('z', lower=np.array([-10.0, 0.0]),
-                             upper=np.array([10.0, 10.0]), indices=np.arange(2, dtype=int))
+        model.add_design_var('z', lower=np.array([-10.0, 0.0]), upper=np.array([10.0, 10.0]),
+                             indices=np.arange(2, dtype=int))
         model.add_design_var('x', lower=0.0, upper=10.0)
         model.add_objective('obj')
         model.add_constraint('con1', equals=np.zeros(1))
