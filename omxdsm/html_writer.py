@@ -2,7 +2,6 @@
 HTML file writing to create standalone XDSMjs output file.
 """
 
-import json
 import os
 
 from openmdao.visualization.html_utils import (
@@ -13,11 +12,8 @@ from openmdao.visualization.html_utils import (
     write_style,
 )
 
-_DEFAULT_JSON_FILE = "xdsm.json"  # Used as default name if data is not embedded
-_CHAR_SET = "utf-8"  # HTML character set
 
-
-def write_html(outfile, source_data=None, data_file=None, embeddable=False):
+def write_html(outfile, source_data=None, data_file=None, embeddable=False, char_set="utf-8"):
     """
     Write XDSMjs HTML output file, with style and script files embedded.
 
@@ -38,6 +34,8 @@ def write_html(outfile, source_data=None, data_file=None, embeddable=False):
     embeddable : bool, optional
         If True, gives a single HTML file that doesn't have the <html>, <DOCTYPE>, <body>
         and <head> tags. If False, gives a single, standalone HTML file for viewing.
+    char_set : str, optional
+        HTML character set.
     """
     # directories
     main_dir = os.path.dirname(os.path.abspath(__file__))
@@ -45,8 +43,8 @@ def write_html(outfile, source_data=None, data_file=None, embeddable=False):
     build_dir = os.path.join(code_dir, "build")
     style_dir = code_dir  # CSS
 
-    with open(os.path.join(build_dir, "xdsm.bundle.js"), "r") as f:
-        code = f.read()
+    with open(os.path.join(build_dir, "xdsm.bundle.js"), "r") as bundle_file:
+        code = bundle_file.read()
         xdsm_bundle = write_script(code, {"type": "text/javascript"})
 
     xdsm_attrs = {"class": "xdsm2"}
@@ -73,7 +71,7 @@ def write_html(outfile, source_data=None, data_file=None, embeddable=False):
         raise ValueError(msg.format(type(source_data)))
 
     # grab the style
-    styles = read_files(("fontello", "xdsm"), style_dir, "css")
+    styles = read_files(["fontello", "xdsm"], style_dir, "css")
     styles_elem = write_style(content="\n\n".join(styles.values()))
 
     # put all style and JS into index
@@ -84,18 +82,19 @@ def write_html(outfile, source_data=None, data_file=None, embeddable=False):
     if embeddable:
         index = "\n\n".join([styles_elem, xdsm_bundle, body])
     else:
-        meta = '<meta charset="{}">'.format(_CHAR_SET)
+        meta = '<meta charset="{}">'.format(char_set)
 
         head = "\n\n".join([meta, styles_elem, xdsm_bundle])
 
         index = head_and_body(head, body, attrs={"class": "js", "lang": ""})
 
     # Embed style, scripts and data to HTML
-    with open(outfile, "w") as f:
-        f.write(index)
+    with open(outfile, "w") as f_out:
+        f_out.write(index)
 
 
 if __name__ == "__main__":
+    import json
     # with JSON file name as input
     write_html(outfile="xdsmjs/xdsm_diagram.html", source_data="examples/idf.json")
 
