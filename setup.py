@@ -1,6 +1,6 @@
 from setuptools import setup
 
-__version__ = "0.2"
+__version__ = "0.3"
 __author__ = 'Peter Onodi'
 
 setup(
@@ -13,19 +13,18 @@ setup(
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
-        'Operating System :: MacOS :: MacOS X',
-        'Operating System :: POSIX :: Linux',
-        'Operating System :: Microsoft :: Windows',
+        "Operating System :: OS Independent",
         'Topic :: Scientific/Engineering',
         'Programming Language :: Python',
     ],
     install_requires=[
         'openmdao',  # 3.0.0-dev or above
         'numpy',
+        'pyxdsm',
     ],
     extras_require={
         'tex': [
-            'pyxdsm @ https://github.com/mdolab/pyXDSM/tarball/master',
+            'pytexit',
         ]
     },
     packages=[

@@ -11,18 +11,12 @@ More detailed documentation can be found in the `omxdsm/docs` folder.
 
 The package can be installed from the [Github repository][1]
 
-Install the basic package using pip:
+Install the package using pip:
 
     pip install omxdsm@https://github.com/onodip/OpenMDAO-XDSM/tarball/master
 
-With the basic installation XDSM diagrams can be created only in HTML format using 
-[XDSMjs][2].
-
-As an alternative, download or clone the repository, go to the directory and install the full package:
-
-    pip install -e .[tex]
-    
-This also installs the [pyXDSM][3] package, and enables the creation of XDSM diagrams in TeX format.
+With the  installation XDSM diagrams can be created  in HTML format using 
+[XDSMjs][2] or in TeX (and PDF) format using the [pyXDSM][3] package.
 
 ## Testing
 Run the tests in `omxdsm/tests/test_xdsm_viewer.py`

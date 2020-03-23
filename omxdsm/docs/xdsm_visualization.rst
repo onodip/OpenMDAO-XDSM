@@ -10,21 +10,9 @@ OpenMDAO also supports the generation of XDSM diagrams of models. For more infor
 
 The diagrams can be in the form of HTML or LaTeX files.
 
-To use the feature which generates LaTeX (`tex`) files, you will need to install pyXDSM. This can be done as follows:
+LaTeX (`tex`) files are generated with pyXDSM.
 
-::
-
-    pip install git+https://github.com/mdolab/pyXDSM
-
-or:
-
-::
-
-    git clone https://github.com/mdolab/pyXDSM
-    cd pyXDSM
-    python setup.py install
-
-To generate PDF files you must also have LaTeX on your system, specifically the `pdflatex` command.
+To generate PDF files from the `tex` source files you must also have LaTeX on your system, specifically the `pdflatex` command.
 
 
 You can generate XDSM files either from the command line or from a script.

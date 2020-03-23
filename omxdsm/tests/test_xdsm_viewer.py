@@ -200,7 +200,7 @@ class TestPyXDSMViewer(unittest.TestCase):
 
             %%% End Preamble Requirements %%%
 
-            \input{D:/Documents/GitHub/OpenMDAO-XDSM/venv_py/lib/site-packages/pyxdsm/diagram_styles}
+            \input{"path/to/diagram_styles"}
             \begin{tikzpicture}
 
             \matrix[MatrixSetup]{
@@ -361,6 +361,8 @@ class TestPyXDSMViewer(unittest.TestCase):
         no_match_new = []  # New text
 
         for new_line, sample_line in zip(new_lines, sample_lines):
+            if new_line.startswith(r"\input{"):
+                continue
             if new_line != sample_line:  # else everything is okay
                 # This can be because of the different ordering of lines or because of an error.
                 no_match_sample.append(new_line)
