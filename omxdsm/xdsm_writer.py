@@ -21,6 +21,7 @@ from numpy.distutils.exec_command import find_executable
 from openmdao.api import Problem
 from openmdao.utils.general_utils import simple_warning
 from openmdao.visualization.n2_viewer.n2_viewer import _get_viewer_data
+from pyxdsm.XDSM import XDSM
 
 from omxdsm.html_writer import write_html
 
@@ -614,27 +615,61 @@ class XDSMjsWriter(AbstractXDSMWriter):
         print('XDSM output file written to: {}'.format(html_filename))
 
 
-try:
-    from pyxdsm.XDSM import XDSM
-except ImportError:
-    XDSM = None
-else:
+class XDSMWriter(XDSM, BaseXDSMWriter):
+    r"""
+    XDSM with some additional semantics.
 
-    class XDSMWriter(XDSM, BaseXDSMWriter):
-        r"""
-        XDSM with some additional semantics.
+    Creates a TeX file and TikZ file, and converts it to PDF.
 
-        Creates a TeX file and TikZ file, and converts it to PDF.
+    .. note:: On Windows it might be necessary to add the second line in the
+       :class:`~pyxdsm.XDSM.XDSM`, if an older version of the package is installed::
 
-        .. note:: On Windows it might be necessary to add the second line in the
-           :class:`~pyxdsm.XDSM.XDSM`, if an older version of the package is installed::
+        diagram_styles_path = os.path.join(module_path, 'diagram_styles')
+        diagram_styles_path = diagram_styles_path.replace('\\', '/')  # Add this line on Windows
 
-            diagram_styles_path = os.path.join(module_path, 'diagram_styles')
-            diagram_styles_path = diagram_styles_path.replace('\\', '/')  # Add this line on Windows
+       This issue is resolved in the latest version of pyXDSM.
 
-           This issue is resolved in the latest version of pyXDSM.
+    Attributes
+    ----------
+    name : str
+        Name of XDSM writer.
+    box_stacking : str
+        Controls the appearance of boxes. Possible values are: 'max_chars','vertical',
+        'horizontal','cut_chars','empty'.
+    number_alignment : str
+        Position of number relative to the component label. Possible values are: 'horizontal',
+        'vertical'.
+    add_component_indices : bool
+        If true, display components with numbers.
+    has_legend : bool
+        If true, a legend will be added to the diagram.
+    class_names : bool
+        If true, appends class name of groups/components to the component blocks of diagram.
+    extension : str
+        Output file saved with this extension. Value fixed at 'pdf' for this class.
+    type_map : str
+        XDSM component type.
+    _comp_indices : dict
+        Maps the component names to their index (position on the matrix diagonal).
+    _styles_used : set
+        Styles in use (needed for legend).
+    _comps : list
+        List of component dictionaries.
+    _loop_ends : list
+        Index of last components in a process.
+    _nr_comps : int
+        Number of components.
+    _pyxdsm_version : str
+        Version of the installed pyXDSM package.
+    """
 
-        Attributes
+    def __init__(self, name='pyxdsm', box_stacking=_DEFAULT_BOX_STACKING,
+                 number_alignment=_DEFAULT_NUMBER_ALIGNMENT, legend=False, class_names=False,
+                 add_component_indices=True, options={}):
+        """
+        Initialize.
+
+        Parameters
         ----------
         name : str
             Name of XDSM writer.
@@ -642,461 +677,421 @@ else:
             Controls the appearance of boxes. Possible values are: 'max_chars','vertical',
             'horizontal','cut_chars','empty'.
         number_alignment : str
-            Position of number relative to the component label. Possible values are: 'horizontal',
-            'vertical'.
+            Position of number relative to the component label. Possible values
+            are: 'horizontal', 'vertical'.
+        legend : bool
+            If true, a legend will be added to the diagram.
+        class_names : bool, optional
+            If true, appends class name of groups/components to the component blocks of diagram.
+            Defaults to False.
         add_component_indices : bool
             If true, display components with numbers.
-        has_legend : bool
-            If true, a legend will be added to the diagram.
-        class_names : bool
-            If true, appends class name of groups/components to the component blocks of diagram.
-        extension : str
-            Output file saved with this extension. Value fixed at 'pdf' for this class.
-        type_map : str
-            XDSM component type.
-        _comp_indices : dict
-            Maps the component names to their index (position on the matrix diagonal).
-        _styles_used : set
-            Styles in use (needed for legend).
-        _comps : list
-            List of component dictionaries.
-        _loop_ends : list
-            Index of last components in a process.
-        _nr_comps : int
-            Number of components.
-        _pyxdsm_version : str
-            Version of the installed pyXDSM package.
+        options : dict
+            Keyword argument options of the XDSM class.
         """
+        try:
+            from pyxdsm import __version__ as pyxdsm_version
+            self._pyxdsm_version = pyxdsm_version
+        except ImportError:
+            # Older pyxdsm did not have a version attribute
+            self._pyxdsm_version = '1.0.0'
+            pyxdsm_version = LooseVersion(self._pyxdsm_version)
 
-        def __init__(self, name='pyxdsm', box_stacking=_DEFAULT_BOX_STACKING,
-                     number_alignment=_DEFAULT_NUMBER_ALIGNMENT, legend=False, class_names=False,
-                     add_component_indices=True, options={}):
-            """
-            Initialize.
+        if pyxdsm_version > LooseVersion('1.0.0'):
+            super(XDSMWriter, self).__init__(**options)
+        else:
+            if options:
+                msg = 'pyXDSM {} does not take keyword arguments. Consider upgrading this ' \
+                      'package. Writer options "{}" will be ignored'
+                simple_warning(msg.format(pyxdsm_version, options.keys()))
+            super(XDSMWriter, self).__init__()
 
-            Parameters
-            ----------
-            name : str
-                Name of XDSM writer.
-            box_stacking : str
-                Controls the appearance of boxes. Possible values are: 'max_chars','vertical',
-                'horizontal','cut_chars','empty'.
-            number_alignment : str
-                Position of number relative to the component label. Possible values
-                are: 'horizontal', 'vertical'.
-            legend : bool
-                If true, a legend will be added to the diagram.
-            class_names : bool, optional
-                If true, appends class name of groups/components to the component blocks of diagram.
-                Defaults to False.
-            add_component_indices : bool
-                If true, display components with numbers.
-            options : dict
-                Keyword argument options of the XDSM class.
-            """
-            try:
-                from pyxdsm import __version__ as pyxdsm_version
-                self._pyxdsm_version = pyxdsm_version
-            except ImportError:
-                # Older pyxdsm did not have a version attribute
-                self._pyxdsm_version = '1.0.0'
-                pyxdsm_version = LooseVersion(self._pyxdsm_version)
+        self.name = name
+        # Formatting options
+        self.box_stacking = box_stacking
+        self.class_names = class_names
+        self.number_alignment = number_alignment
+        self.add_component_indices = add_component_indices
+        self.has_legend = legend  # If true, a legend will be added to the diagram
+        # Output file saved with this extension
+        self.extension = 'pdf'
 
-            if pyxdsm_version > LooseVersion('1.0.0'):
-                super(XDSMWriter, self).__init__(**options)
+        try:
+            type_map_name = self.name
+            if pyxdsm_version < LooseVersion('2.0.0'):
+                type_map_name += ' 1.0'
+            self.type_map = _COMPONENT_TYPE_MAP[type_map_name]
+        except KeyError:
+            self.type_map = _COMPONENT_TYPE_MAP[_DEFAULT_WRITER]
+            msg = 'Name "{}" not found in component type mapping, will default to "{}"'
+            simple_warning(msg.format(self.name, _DEFAULT_WRITER))
+        # Number of components
+        self._nr_comps = 0
+        # Maps the component names to their index (position on the matrix diagonal)
+        self._comp_indices = {}
+        # List of component dictionaries
+        self._comps = []
+        # Index of last components in a process
+        self._loop_ends = []
+        # Styles in use (needed for legend)
+        self._styles_used = set()
+
+    def write(self, filename=None, **kwargs):
+        """
+        Write the output file.
+
+        This just wraps the XDSM version and throws out incompatible arguments.
+
+        Parameters
+        ----------
+        filename : str
+            Name of the file to be written.
+        **kwargs : dict
+            Keyword args
+        """
+        build = kwargs.pop('build', False)
+        if LooseVersion(self._pyxdsm_version) <= LooseVersion('1.0.0'):
+            kwargs = {}
+        else:
+            kwargs.setdefault('cleanup', True)
+
+        for comp in self._comps:
+            label = comp['label']
+            # If the process steps are included in the labels
+            if self.add_component_indices:
+                i = i0 = comp.pop('index', None)
+                step = comp.pop('step', None)
+                # For each closed loop increment the process index by one
+                for loop in self._loop_ends:
+                    if loop < i0:
+                        i += 1
+                # Step is not None for the driver and solvers, for these a different label
+                # will be made showing the starting end and step and the index of the next
+                # step.
+                if step is not None:
+                    i = self._make_loop_str(first=i, last=step, start_index=_START_INDEX)
             else:
-                if options:
-                    msg = 'pyXDSM {} does not take keyword arguments. Consider upgrading this ' \
-                          'package. Writer options "{}" will be ignored'
-                    simple_warning(msg.format(pyxdsm_version, options.keys()))
-                super(XDSMWriter, self).__init__()
+                i = None
+            label = self.finalize_label(i, label, self.number_alignment,
+                                        class_name=comp['class'])
 
-            self.name = name
-            # Formatting options
-            self.box_stacking = box_stacking
-            self.class_names = class_names
-            self.number_alignment = number_alignment
-            self.add_component_indices = add_component_indices
-            self.has_legend = legend  # If true, a legend will be added to the diagram
-            # Output file saved with this extension
-            self.extension = 'pdf'
+            # Convert from math mode to regular text, if it is a one liner wrapped in math mode
+            if isinstance(label, str):
+                label = _textify(label)
+            comp['label'] = label  # Now the label is finished.
+            # Now really add the system with the XDSM class' method
+            self.add_system(**comp)
 
-            try:
-                type_map_name = self.name
-                if pyxdsm_version < LooseVersion('2.0.0'):
-                    type_map_name += ' 1.0'
-                self.type_map = _COMPONENT_TYPE_MAP[type_map_name]
-            except KeyError:
-                self.type_map = _COMPONENT_TYPE_MAP[_DEFAULT_WRITER]
-                msg = 'Name "{}" not found in component type mapping, will default to "{}"'
-                simple_warning(msg.format(self.name, _DEFAULT_WRITER))
-            # Number of components
-            self._nr_comps = 0
-            # Maps the component names to their index (position on the matrix diagonal)
-            self._comp_indices = {}
-            # List of component dictionaries
-            self._comps = []
-            # Index of last components in a process
-            self._loop_ends = []
-            # Styles in use (needed for legend)
-            self._styles_used = set()
+        super(XDSMWriter, self).write(file_name=filename, build=build, **kwargs)
 
-        def write(self, filename=None, **kwargs):
-            """
-            Write the output file.
+    def add_system(self, node_name, style, label, stack=False, faded=False, **kwargs):
+        """
+        Add a system.
 
-            This just wraps the XDSM version and throws out incompatible arguments.
+        Parameters
+        ----------
+        node_name : str
+            Name of the system.
+        style : str
+            Block formatting style, e.g. Analysis
+        label : str
+            Label of system in XDSM.
+        stack : bool
+            Defaults to False.
+        faded : bool
+            Defaults to False.
+        **kwargs : dict
+            Keyword arguments.
+        """
+        super(XDSMWriter, self).add_system(node_name=node_name, style=style, label=label,
+                                           stack=stack, faded=faded)
 
-            Parameters
-            ----------
-            filename : str
-                Name of the file to be written.
-            **kwargs : dict
-                Keyword args
-            """
-            build = kwargs.pop('build', False)
-            if LooseVersion(self._pyxdsm_version) <= LooseVersion('1.0.0'):
-                kwargs = {}
+    def _add_system(self, node_name, style, label, stack=False, faded=False, cls=None):
+        # Adds a system dictionary to the components.
+        # This dictionary can be modified by other methods.
+        self._styles_used.add(style)
+
+        if label is None:
+            label = node_name
+        self._comp_indices[node_name] = self._nr_comps
+        sys_dct = {'node_name': node_name, 'style': style, 'label': label, 'stack': stack,
+                   'faded': faded, 'index': self._nr_comps, 'class': cls}
+        self._nr_comps += 1
+        self._comps.append(sys_dct)
+
+    def add_solver(self, name, label=None, **kwargs):
+        """
+        Add a solver.
+
+        Parameters
+        ----------
+        label : str
+            Label in the XDSM
+        name : str
+            Name of the solver
+        **kwargs : dict
+            Keyword args
+        """
+        style = self.type_map['solver']
+        self._add_system(node_name=name, style=style, label=label, **kwargs)
+
+    def add_comp(self, name, label=None, stack=False, comp_type=None, **kwargs):
+        """
+        Add a component.
+
+        Parameters
+        ----------
+        label : str
+            Label in the XDSM, defaults to the name of the component.
+        name : str
+            Name of the component
+        stack : bool
+            True for parallel components.
+            Defaults to False.
+        comp_type : str or None
+            Component type, e.g. explicit, implicit or metamodel
+        **kwargs : dict
+            Keyword args
+        """
+        style = self.type_map.get(comp_type, 'Function')
+        self._add_system(node_name=name, style=style, label=label, stack=stack, **kwargs)
+
+    def add_driver(self, name, label=None, driver_type='Optimization', **kwargs):
+        """
+        Add an optimizer.
+
+        Parameters
+        ----------
+        label : str
+            Label in the XDSM
+        name : str
+            Name of the optimizer.
+        driver_type : str
+            Driver type can be "Optimizer" or "DOE".
+            Defaults to "Optimizer"
+        **kwargs : dict
+            Keyword args
+        """
+        style = self.type_map.get(driver_type, 'Optimization')
+        self._add_system(node_name=name, style=style, label=label, **kwargs)
+
+    def add_workflow(self, solver=None):
+        """
+        Add a workflow. If "comp_names" is None, all components will be included.
+
+        Parameters
+        ----------
+        solver : dict or None, optional
+            List of component names.
+            Defaults to None.
+        """
+        if hasattr(self, 'processes'):  # Not available in versions <= 1.0.0
+            index_dct = self._comp_indices
+
+            if solver is None:
+                # Add driver
+                idx = 0
+                comp_names = [c['node_name'] for c in self._comps]  # Driver process
+                step = len(self._comps) + 1
+                self._comps[idx]['step'] = step
             else:
-                kwargs.setdefault('cleanup', True)
+                solver_name = solver['abs_name']
+                comp_names = [c['abs_name'] for c in solver['comps']]
+                nr = len(comp_names)
+                idx = index_dct[solver_name]
+                self._comps[idx]['step'] = nr + idx + 1
+                comp_names = [solver_name] + comp_names
+                # Loop through all processes added so far
+                # Assumes, that processes are added in the right order, first the higher level
+                # processes
+                for proc in self.processes:
+                    process_name = proc[0]
+                    for i, item in enumerate(proc, start=1):
+                        if solver_name == item:  # solver found in an already added process
+                            # Delete items belonging to the new process from the others
+                            proc[i:i + nr] = []
+                            process_index = index_dct[process_name]
+                            # There is a process loop inside, this adds plus one step
+                            self._comps[process_index]['step'] += 1
+            self._loop_ends.append(self._comp_indices[comp_names[-1]])
+            # Close the loop by
+            comp_names.append(comp_names[0])
+            self.add_process(comp_names, arrow=_PROCESS_ARROWS)
 
-            for comp in self._comps:
-                label = comp['label']
-                # If the process steps are included in the labels
-                if self.add_component_indices:
-                    i = i0 = comp.pop('index', None)
-                    step = comp.pop('step', None)
-                    # For each closed loop increment the process index by one
-                    for loop in self._loop_ends:
-                        if loop < i0:
-                            i += 1
-                    # Step is not None for the driver and solvers, for these a different label
-                    # will be made showing the starting end and step and the index of the next
-                    # step.
-                    if step is not None:
-                        i = self._make_loop_str(first=i, last=step, start_index=_START_INDEX)
-                else:
-                    i = None
-                label = self.finalize_label(i, label, self.number_alignment,
-                                            class_name=comp['class'])
+    @staticmethod
+    def format_block(names, stacking='vertical', **kwargs):
+        """
+        Format a block.
 
-                # Convert from math mode to regular text, if it is a one liner wrapped in math mode
-                if isinstance(label, str):
-                    label = _textify(label)
-                comp['label'] = label  # Now the label is finished.
-                # Now really add the system with the XDSM class' method
-                self.add_system(**comp)
+        Parameters
+        ----------
+        names : list
+            Names to put into block.
+        stacking : str
+            Controls the appearance of boxes. Possible values are: 'max_chars','vertical',
+            'horizontal','cut_chars','empty'.
+        **kwargs : dict
+            Alternative way to add element attributes. Use with attention, can overwrite
+            some built-in python names as "class" or "id" if misused.
 
-            super(XDSMWriter, self).write(file_name=filename, build=build, **kwargs)
-
-        def add_system(self, node_name, style, label, stack=False, faded=False, **kwargs):
-            """
-            Add a system.
-
-            Parameters
-            ----------
-            node_name : str
-                Name of the system.
-            style : str
-                Block formatting style, e.g. Analysis
-            label : str
-                Label of system in XDSM.
-            stack : bool
-                Defaults to False.
-            faded : bool
-                Defaults to False.
-            **kwargs : dict
-                Keyword arguments.
-            """
-            super(XDSMWriter, self).add_system(node_name=node_name, style=style, label=label,
-                                               stack=stack, faded=faded)
-
-        def _add_system(self, node_name, style, label, stack=False, faded=False, cls=None):
-            # Adds a system dictionary to the components.
-            # This dictionary can be modified by other methods.
-            self._styles_used.add(style)
-
-            if label is None:
-                label = node_name
-            self._comp_indices[node_name] = self._nr_comps
-            sys_dct = {'node_name': node_name, 'style': style, 'label': label, 'stack': stack,
-                       'faded': faded, 'index': self._nr_comps, 'class': cls}
-            self._nr_comps += 1
-            self._comps.append(sys_dct)
-
-        def add_solver(self, name, label=None, **kwargs):
-            """
-            Add a solver.
-
-            Parameters
-            ----------
-            label : str
-                Label in the XDSM
-            name : str
-                Name of the solver
-            **kwargs : dict
-                Keyword args
-            """
-            style = self.type_map['solver']
-            self._add_system(node_name=name, style=style, label=label, **kwargs)
-
-        def add_comp(self, name, label=None, stack=False, comp_type=None, **kwargs):
-            """
-            Add a component.
-
-            Parameters
-            ----------
-            label : str
-                Label in the XDSM, defaults to the name of the component.
-            name : str
-                Name of the component
-            stack : bool
-                True for parallel components.
-                Defaults to False.
-            comp_type : str or None
-                Component type, e.g. explicit, implicit or metamodel
-            **kwargs : dict
-                Keyword args
-            """
-            style = self.type_map.get(comp_type, 'Function')
-            self._add_system(node_name=name, style=style, label=label, stack=stack, **kwargs)
-
-        def add_driver(self, name, label=None, driver_type='Optimization', **kwargs):
-            """
-            Add an optimizer.
-
-            Parameters
-            ----------
-            label : str
-                Label in the XDSM
-            name : str
-                Name of the optimizer.
-            driver_type : str
-                Driver type can be "Optimizer" or "DOE".
-                Defaults to "Optimizer"
-            **kwargs : dict
-                Keyword args
-            """
-            style = self.type_map.get(driver_type, 'Optimization')
-            self._add_system(node_name=name, style=style, label=label, **kwargs)
-
-        def add_workflow(self, solver=None):
-            """
-            Add a workflow. If "comp_names" is None, all components will be included.
-
-            Parameters
-            ----------
-            solver : dict or None, optional
-                List of component names.
-                Defaults to None.
-            """
-            if hasattr(self, 'processes'):  # Not available in versions <= 1.0.0
-                index_dct = self._comp_indices
-
-                if solver is None:
-                    # Add driver
-                    idx = 0
-                    comp_names = [c['node_name'] for c in self._comps]  # Driver process
-                    step = len(self._comps) + 1
-                    self._comps[idx]['step'] = step
-                else:
-                    solver_name = solver['abs_name']
-                    comp_names = [c['abs_name'] for c in solver['comps']]
-                    nr = len(comp_names)
-                    idx = index_dct[solver_name]
-                    self._comps[idx]['step'] = nr + idx + 1
-                    comp_names = [solver_name] + comp_names
-                    # Loop through all processes added so far
-                    # Assumes, that processes are added in the right order, first the higher level
-                    # processes
-                    for proc in self.processes:
-                        process_name = proc[0]
-                        for i, item in enumerate(proc, start=1):
-                            if solver_name == item:  # solver found in an already added process
-                                # Delete items belonging to the new process from the others
-                                proc[i:i + nr] = []
-                                process_index = index_dct[process_name]
-                                # There is a process loop inside, this adds plus one step
-                                self._comps[process_index]['step'] += 1
-                self._loop_ends.append(self._comp_indices[comp_names[-1]])
-                # Close the loop by
-                comp_names.append(comp_names[0])
-                self.add_process(comp_names, arrow=_PROCESS_ARROWS)
-
-        @staticmethod
-        def format_block(names, stacking='vertical', **kwargs):
-            """
-            Format a block.
-
-            Parameters
-            ----------
-            names : list
-                Names to put into block.
-            stacking : str
-                Controls the appearance of boxes. Possible values are: 'max_chars','vertical',
-                'horizontal','cut_chars','empty'.
-            **kwargs : dict
-                Alternative way to add element attributes. Use with attention, can overwrite
-                some built-in python names as "class" or "id" if misused.
-
-            Returns
-            -------
-            str
-                The block string.
-            """
-            end_str = ', ...'
-            max_lines = kwargs.pop('box_lines', _MAX_BOX_LINES)
-            if stacking == 'vertical':
-                if (max_lines is None) or (max_lines >= len(names)):
-                    return names
-                else:
-                    names = names[0:max_lines]
-                    names[-1] = names[-1] + end_str
-                    return names
-            elif stacking == 'horizontal':
-                return ', '.join(names)
-            elif stacking in ('max_chars', 'cut_chars'):
-                max_chars = kwargs.pop('box_width', _DEFAULT_BOX_CHAR_LIMIT)
-                if len(names) < 2:
-                    return names
-                else:
-                    lengths = 0
-                    lines = list()
-                    line = ''
-                    for name in names:
-                        lengths += len(name)
-                        if lengths <= max_chars:
-                            if line:  # there are already var names on the line
-                                line += ', ' + name
-                            else:  # it will be the first var name on the line
-                                line = name
-                        else:  # make new line
-                            if stacking == 'max_chars':
-                                if line:
-                                    lines.append(line)
-                                line = name
-                                lengths = len(name)
-                            else:  # 'cut_chars'
-                                lines.append(line + end_str)
-                                line = ''  # No new line
-                                break
-                    if line:  # it will be the last line, if var_names was not empty
-                        lines.append(line)
-                    if len(lines) > 1:
-                        return lines
-                    else:
-                        return lines[0]  # return the string instead of a list
-            elif stacking == 'empty':  # No variable names in the data block, good for big diagrams
-                return ''
+        Returns
+        -------
+        str
+            The block string.
+        """
+        end_str = ', ...'
+        max_lines = kwargs.pop('box_lines', _MAX_BOX_LINES)
+        if stacking == 'vertical':
+            if (max_lines is None) or (max_lines >= len(names)):
+                return names
             else:
-                msg = 'Invalid block stacking option "{}".'
-                raise ValueError(msg.format(stacking))
-
-        @staticmethod
-        def format_var_str(name, var_type, superscripts=None):
-            """
-            Format string displaying variable name.
-
-            Parameters
-            ----------
-            name : str
-                Name (label in the block) of the variable.
-            var_type : str
-                Variable type.
-            superscripts : dict or None, optional
-                A dictionary mapping variable types to their superscript notation
-
-            Returns
-            -------
-            str
-                Formatted var string.
-            """
-            if superscripts is None:
-                superscripts = _SUPERSCRIPTS
-            sup = superscripts[var_type]
-            return '{}^{{{}}}'.format(name, sup)
-
-        @staticmethod
-        def _make_loop_str(first, last, start_index=0):
-            # Start index shifts all numbers
-            i = start_index
-            txt = '{}, {} $ \\rightarrow $ {}'
-            return txt.format(first + i, last + i, first + i + 1)
-
-        def finalize_label(self, number, txt, alignment, class_name=None):
-            """
-            Add an index to the label either above or on the left side.
-
-            Parameters
-            ----------
-            number : None or empty string or int
-                Number value for the label.
-            txt : str
-                Text appended to the number string.
-            alignment : str
-                Indicates alignment of label. Either 'horizontal' or 'vertical'.
-            class_name : str or None, optional
-                Class name.
-                Defaults to None.
-
-            Returns
-            -------
-            str or list(str)
-                Label to be used for this item. List, if it is multiline.
-            """
-            if isinstance(txt, str):
-                txt = [txt]  # Make iterable, it will be converted back if there is only 1 line.
-
-            if self.class_names and (class_name is not None):
-                cls_name = r'\textit{{{}}}'.format(class_name)  # Makes it italic
-                txt.append(cls_name)  # Class name goes to a new line
-            if number:  # If number is None or empty string, it won't be inserted
-                number_str = '{}: '.format(number)
-                if alignment == 'horizontal':
-                    txt[0] = number_str + txt[0]  # Number added to first line
-                elif alignment == 'vertical':
-                    txt.insert(0, number_str)  # Number added to new line
+                names = names[0:max_lines]
+                names[-1] = names[-1] + end_str
+                return names
+        elif stacking == 'horizontal':
+            return ', '.join(names)
+        elif stacking in ('max_chars', 'cut_chars'):
+            max_chars = kwargs.pop('box_width', _DEFAULT_BOX_CHAR_LIMIT)
+            if len(names) < 2:
+                return names
+            else:
+                lengths = 0
+                lines = list()
+                line = ''
+                for name in names:
+                    lengths += len(name)
+                    if lengths <= max_chars:
+                        if line:  # there are already var names on the line
+                            line += ', ' + name
+                        else:  # it will be the first var name on the line
+                            line = name
+                    else:  # make new line
+                        if stacking == 'max_chars':
+                            if line:
+                                lines.append(line)
+                            line = name
+                            lengths = len(name)
+                        else:  # 'cut_chars'
+                            lines.append(line + end_str)
+                            line = ''  # No new line
+                            break
+                if line:  # it will be the last line, if var_names was not empty
+                    lines.append(line)
+                if len(lines) > 1:
+                    return lines
                 else:
-                    msg = '"{}" is an invalid option for number_alignment, it will be ignored.'
-                    simple_warning(msg.format(alignment))
-            return _multiline_block(*txt)
+                    return lines[0]  # return the string instead of a list
+        elif stacking == 'empty':  # No variable names in the data block, good for big diagrams
+            return ''
+        else:
+            msg = 'Invalid block stacking option "{}".'
+            raise ValueError(msg.format(stacking))
 
-        def _make_legend(self, title="Legend"):
-            """
-            Add a legend row to the matrix. The labels of this row show the used component types.
+    @staticmethod
+    def format_var_str(name, var_type, superscripts=None):
+        """
+        Format string displaying variable name.
 
-            Parameters
-            ----------
-            title : str, optional
-                Defaults to "Legend".
+        Parameters
+        ----------
+        name : str
+            Name (label in the block) of the variable.
+        var_type : str
+            Variable type.
+        superscripts : dict or None, optional
+            A dictionary mapping variable types to their superscript notation
 
-            Returns
-            -------
-                str
-            """
-            node_str = r'\node [{style}] ({name}) {{{label}}};'
-            styles = sorted(self._styles_used)  # Alphabetical sort
-            for i, style in enumerate(styles):
-                super(XDSMWriter, self).add_system(node_name="style{}".format(i), style=style,
-                                                   label=style)
-            style_strs = [node_str.format(name="style{}".format(i), style=style, label=style)
-                          for i, style in enumerate(styles)]
-            title_str = r'\node (legend_title) {{\LARGE \textbf{{{title}}}}};\\'
-            return title_str.format(title=title) + '  &\n'.join(style_strs) + r'\\'
+        Returns
+        -------
+        str
+            Formatted var string.
+        """
+        if superscripts is None:
+            superscripts = _SUPERSCRIPTS
+        sup = superscripts[var_type]
+        return '{}^{{{}}}'.format(name, sup)
 
-        def _build_node_grid(self):
-            """
-            Optionally appends the legend to the node grid.
+    @staticmethod
+    def _make_loop_str(first, last, start_index=0):
+        # Start index shifts all numbers
+        i = start_index
+        txt = '{}, {} $ \\rightarrow $ {}'
+        return txt.format(first + i, last + i, first + i + 1)
 
-            Returns
-            -------
+    def finalize_label(self, number, txt, alignment, class_name=None):
+        """
+        Add an index to the label either above or on the left side.
+
+        Parameters
+        ----------
+        number : None or empty string or int
+            Number value for the label.
+        txt : str
+            Text appended to the number string.
+        alignment : str
+            Indicates alignment of label. Either 'horizontal' or 'vertical'.
+        class_name : str or None, optional
+            Class name.
+            Defaults to None.
+
+        Returns
+        -------
+        str or list(str)
+            Label to be used for this item. List, if it is multiline.
+        """
+        if isinstance(txt, str):
+            txt = [txt]  # Make iterable, it will be converted back if there is only 1 line.
+
+        if self.class_names and (class_name is not None):
+            cls_name = r'\textit{{{}}}'.format(class_name)  # Makes it italic
+            txt.append(cls_name)  # Class name goes to a new line
+        if number:  # If number is None or empty string, it won't be inserted
+            number_str = '{}: '.format(number)
+            if alignment == 'horizontal':
+                txt[0] = number_str + txt[0]  # Number added to first line
+            elif alignment == 'vertical':
+                txt.insert(0, number_str)  # Number added to new line
+            else:
+                msg = '"{}" is an invalid option for number_alignment, it will be ignored.'
+                simple_warning(msg.format(alignment))
+        return _multiline_block(*txt)
+
+    def _make_legend(self, title="Legend"):
+        """
+        Add a legend row to the matrix. The labels of this row show the used component types.
+
+        Parameters
+        ----------
+        title : str, optional
+            Defaults to "Legend".
+
+        Returns
+        -------
             str
-                A grid of the nodes.
-            """
-            node_grid = super(XDSMWriter, self)._build_node_grid()
-            if self.has_legend:
-                node_grid += self._make_legend()
-            return node_grid
+        """
+        node_str = r'\node [{style}] ({name}) {{{label}}};'
+        styles = sorted(self._styles_used)  # Alphabetical sort
+        for i, style in enumerate(styles):
+            super(XDSMWriter, self).add_system(node_name="style{}".format(i), style=style,
+                                               label=style)
+        style_strs = [node_str.format(name="style{}".format(i), style=style, label=style)
+                      for i, style in enumerate(styles)]
+        title_str = r'\node (legend_title) {{\LARGE \textbf{{{title}}}}};\\'
+        return title_str.format(title=title) + '  &\n'.join(style_strs) + r'\\'
+
+    def _build_node_grid(self):
+        """
+        Optionally appends the legend to the node grid.
+
+        Returns
+        -------
+        str
+            A grid of the nodes.
+        """
+        node_grid = super(XDSMWriter, self)._build_node_grid()
+        if self.has_legend:
+            node_grid += self._make_legend()
+        return node_grid
 
 
 def write_xdsm(data_source, filename, model_path=None, recurse=True,
@@ -1212,12 +1207,7 @@ def write_xdsm(data_source, filename, model_path=None, recurse=True,
     writer = kwargs.pop('writer', None)
 
     if out_format in ('tex', 'pdf') and (writer is None):
-        if XDSM is None:
-            print('\nThe "tex" and "pdf" formats require the pyxdsm package. You can download the '
-                  'package from {0}, or install it directly from '
-                  'github using:  pip install git+{0}.git'.format(PYXDSM_REPO))
-            return
-        elif out_format == 'pdf':
+        if out_format == 'pdf':
             if not find_executable('pdflatex'):
                 print("Can't find pdflatex, so a pdf can't be generated.")
             else:

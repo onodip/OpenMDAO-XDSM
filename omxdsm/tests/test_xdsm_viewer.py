@@ -2,21 +2,17 @@ import os
 import unittest
 
 import numpy as np
-from numpy.distutils.exec_command import find_executable
-
 import openmdao.api as om
-from omxdsm import write_xdsm, write_html
+from numpy.distutils.exec_command import find_executable
 from openmdao.test_suite.components.sellar import SellarNoDerivatives, SellarDis1, SellarDis2
 from openmdao.test_suite.components.sellar_feature import SellarMDA
 from openmdao.test_suite.scripts.circuit import Circuit
 from openmdao.utils.assert_utils import assert_warning
 from openmdao.utils.shell_proc import check_call
 from openmdao.utils.testing_utils import use_tempdirs
+from pyxdsm.XDSM import XDSM
 
-try:
-    from pyxdsm.XDSM import XDSM
-except ImportError:
-    XDSM = None
+from omxdsm import write_xdsm, write_html
 
 # Set DEBUG to True if you want to view the generated HTML and PDF output files.
 DEBUG = False
@@ -32,7 +28,6 @@ if DEBUG:
     use_tempdirs = lambda cls: cls
 
 
-@unittest.skipUnless(XDSM, "The pyXDSM package is required.")
 @use_tempdirs
 class TestPyXDSMViewer(unittest.TestCase):
 
