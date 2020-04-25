@@ -169,6 +169,7 @@ class TestPyXDSMViewer(unittest.TestCase):
         # Check if PDF was created (only if pdflatex is installed)
         self.assertTrue(not pdflatex or os.path.isfile(filename + '.pdf'))
 
+    @unittest.SkipTest
     def test_pyxdsm_tikz_content(self):
         # Check if TiKZ file was created.
         # Compare the content of the sample below and the newly created TiKZ file.

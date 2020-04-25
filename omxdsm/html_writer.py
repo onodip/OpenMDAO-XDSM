@@ -2,10 +2,9 @@
 HTML file writing to create standalone XDSMjs output file.
 """
 
-import os
+import xdsmjs
 
 from openmdao.visualization.html_utils import (
-    read_files,
     write_div,
     head_and_body,
     write_script,
@@ -37,15 +36,8 @@ def write_html(outfile, source_data=None, data_file=None, embeddable=False, char
     char_set : str, optional
         HTML character set.
     """
-    # directories
-    main_dir = os.path.dirname(os.path.abspath(__file__))
-    code_dir = os.path.join(main_dir, "XDSMjs")
-    build_dir = os.path.join(code_dir, "build")
-    style_dir = code_dir  # CSS
-
-    with open(os.path.join(build_dir, "xdsm.bundle.js"), "r") as bundle_file:
-        code = bundle_file.read()
-        xdsm_bundle = write_script(code, {"type": "text/javascript"})
+    code = xdsmjs.bundlejs()
+    xdsm_bundle = write_script(code, {"type": "text/javascript"})
 
     xdsm_attrs = {"class": "xdsm2"}
     # grab the data
@@ -71,7 +63,7 @@ def write_html(outfile, source_data=None, data_file=None, embeddable=False, char
         raise ValueError(msg.format(type(source_data)))
 
     # grab the style
-    styles = read_files(["fontello", "xdsm"], style_dir, "css")
+    styles = dict(zip(("fontello", "xdsm"), xdsmjs.css()))
     styles_elem = write_style(content="\n\n".join(styles.values()))
 
     # put all style and JS into index
@@ -83,9 +75,7 @@ def write_html(outfile, source_data=None, data_file=None, embeddable=False, char
         index = "\n\n".join([styles_elem, xdsm_bundle, body])
     else:
         meta = '<meta charset="{}">'.format(char_set)
-
         head = "\n\n".join([meta, styles_elem, xdsm_bundle])
-
         index = head_and_body(head, body, attrs={"class": "js", "lang": ""})
 
     # Embed style, scripts and data to HTML

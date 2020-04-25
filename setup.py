@@ -1,6 +1,6 @@
 from setuptools import setup
 
-__version__ = "0.4"
+__version__ = "0.5"
 __author__ = 'Peter Onodi'
 
 setup(
@@ -21,6 +21,7 @@ setup(
         'openmdao',  # 3.0.0-dev or above
         'numpy',
         'pyxdsm',
+        'xdsmjs'
     ],
     extras_require={
         'tex': [

@@ -63,3 +63,24 @@ is not installed.
 
 ## Bug Fixes:
 - None
+
+*************************************
+# Release Notes for OpenMDAO-XDSM 0.5
+
+April 25, 2020
+
+## Backwards Incompatible API Changes:
+
+- None
+
+## Backwards Incompatible NON-API Changes:
+
+- The xdsmjs source code was removed.
+- The xdsmjs Python package (https://pypi.org/project/xdsmjs/) was added to the dependencies.
+
+## New Features:
+
+- None
+
+## Bug Fixes:
+- None
