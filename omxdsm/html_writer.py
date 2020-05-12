@@ -12,7 +12,9 @@ from openmdao.visualization.html_utils import (
 )
 
 
-def write_html(outfile, source_data=None, data_file=None, embeddable=False, char_set="utf-8"):
+def write_html(
+    outfile, source_data=None, data_file=None, embeddable=False, char_set="utf-8"
+):
     """
     Write XDSMjs HTML output file, with style and script files embedded.
 
@@ -39,6 +41,13 @@ def write_html(outfile, source_data=None, data_file=None, embeddable=False, char
     code = xdsmjs.bundlejs()
     xdsm_bundle = write_script(code, {"type": "text/javascript"})
 
+    init = """
+      document.addEventListener('DOMContentLoaded', function() {
+      xdsmjs.XDSMjs().createXdsm();
+    });
+    """
+    xdsm_init = write_script(init, {"type": "text/javascript"})
+
     xdsm_attrs = {"class": "xdsm2"}
     # grab the data
     if data_file is not None:
@@ -63,8 +72,7 @@ def write_html(outfile, source_data=None, data_file=None, embeddable=False, char
         raise ValueError(msg.format(type(source_data)))
 
     # grab the style
-    styles = dict(zip(("fontello", "xdsm"), xdsmjs.css()))
-    styles_elem = write_style(content="\n\n".join(styles.values()))
+    styles_elem = write_style(xdsmjs.css())
 
     # put all style and JS into index
     toolbar_div = write_div(attrs={"class": "xdsm-toolbar"})
@@ -75,7 +83,7 @@ def write_html(outfile, source_data=None, data_file=None, embeddable=False, char
         index = "\n\n".join([styles_elem, xdsm_bundle, body])
     else:
         meta = '<meta charset="{}">'.format(char_set)
-        head = "\n\n".join([meta, styles_elem, xdsm_bundle])
+        head = "\n\n".join([meta, styles_elem, xdsm_bundle, xdsm_init])
         index = head_and_body(head, body, attrs={"class": "js", "lang": ""})
 
     # Embed style, scripts and data to HTML
@@ -85,6 +93,7 @@ def write_html(outfile, source_data=None, data_file=None, embeddable=False, char
 
 if __name__ == "__main__":
     import json
+
     # with JSON file name as input
     write_html(outfile="xdsmjs/xdsm_diagram.html", source_data="examples/idf.json")
 
