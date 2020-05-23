@@ -110,8 +110,6 @@ _MAX_BOX_LINES = None  # Maximum number of lines in a box. No limit, if None.
 _START_INDEX = 0  # If components are indexed, this will be the first index. 0 or 1
 _DEFAULT_NUMBER_ALIGNMENT = 'horizontal'  # Place the index above ("vertical") or beside ("horizontal") the name
 
-PYXDSM_REPO = r'https://github.com/mdolab/pyXDSM'  # pyXDSM's GitHub page
-
 
 class BaseXDSMWriter(object):
     """
@@ -603,15 +601,12 @@ class XDSMjsWriter(AbstractXDSMWriter):
 
         embeddable = kwargs.pop('embeddable', False)
         if embed_data:
-            # Write HTML file
-            write_html(outfile=html_filename, source_data=data, embeddable=embeddable)
+            write_html(outfile=html_filename, source_data=data, embeddable=embeddable)  # Write HTML file
         else:
             json_filename = '.'.join([filename, 'json'])
             with open(json_filename, 'w') as f:
                 json.dump(data, f)
-
-            # Write HTML file
-            write_html(outfile=html_filename, data_file=json_filename, embeddable=embeddable)
+            write_html(outfile=html_filename, data_file=json_filename, embeddable=embeddable)  # Write HTML file
         print('XDSM output file written to: {}'.format(html_filename))
 
 
@@ -814,8 +809,8 @@ class XDSMWriter(XDSM, BaseXDSMWriter):
         if label is None:
             label = node_name
         self._comp_indices[node_name] = self._nr_comps
-        sys_dct = {'node_name': node_name, 'style': style, 'label': label, 'stack': stack,
-                   'faded': faded, 'index': self._nr_comps, 'class': cls}
+        sys_dct = {'node_name': node_name, 'style': style, 'label': label, 'stack': stack, 'faded': faded,
+                   'index': self._nr_comps, 'class': cls}
         self._nr_comps += 1
         self._comps.append(sys_dct)
 
@@ -1072,8 +1067,7 @@ class XDSMWriter(XDSM, BaseXDSMWriter):
         node_str = r'\node [{style}] ({name}) {{{label}}};'
         styles = sorted(self._styles_used)  # Alphabetical sort
         for i, style in enumerate(styles):
-            super(XDSMWriter, self).add_system(node_name="style{}".format(i), style=style,
-                                               label=style)
+            super(XDSMWriter, self).add_system(node_name="style{}".format(i), style=style, label=style)
         style_strs = [node_str.format(name="style{}".format(i), style=style, label=style)
                       for i, style in enumerate(styles)]
         title_str = r'\node (legend_title) {{\LARGE \textbf{{{title}}}}};\\'
@@ -1152,17 +1146,17 @@ def write_xdsm(data_source, filename, model_path=None, recurse=True,
         The Problem or case recorder database containing the model or model data.
     filename : str
         Name of the output files (do not provide file extension)
-    model_path : str or None
+    model_path : str or None, optional
         Path to the subsystem to be transcribed to XDSM.  If None, use the model root.
-    recurse : bool
+    recurse : bool, optional
         If False, treat the top level of each name as the source/target component.
-    include_external_outputs : bool
+    include_external_outputs : bool, optional
         If True, show externally connected outputs when transcribing a subsystem.
         Defaults to True.
     out_format : str, optional
         Output format, one of "tex" or "pdf" (pyXDSM) or "html" (XDSMjs).
         Defaults to "tex".
-    include_solver : bool
+    include_solver : bool, optional
         Include or not the problem model's nonlinear solver in the XDSM.
     subs : dict(str, tuple), tuple(str, str), optional
         Characters to be replaced. Dictionary with writer names and character pairs or just the
@@ -1170,13 +1164,13 @@ def write_xdsm(data_source, filename, model_path=None, recurse=True,
     show_browser : bool, optional
         If True, pop up a browser to view the generated html file.
         Defaults to True.
-    add_process_conns : bool
+    add_process_conns : bool, optional
         Add process connections (thin black lines)
         Defaults to True.
-    show_parallel : bool
+    show_parallel : bool, optional
         Show parallel components with stacked blocks.
         Defaults to True.
-    quiet : bool
+    quiet : bool, optional
         Set to True to suppress output from pdflatex. Applicable only for 'tex' or 'pdf' output format.
     output_side : str or dict(str, str)
         Left or right, or a dictionary with component types as keys. Component type key can
@@ -1269,16 +1263,13 @@ def write_xdsm(data_source, filename, model_path=None, recurse=True,
             msg = 'Custom XDSM writer should be an instance of BaseXDSMWriter, now it is a "{}".'
             raise TypeError(msg.format(type(writer)))
 
-    return _write_xdsm(filename, viewer_data=viewer_data,
-                       driver=driver_name, include_solver=include_solver, model_path=model_path,
-                       design_vars=design_vars, responses=responses, writer=writer,
-                       recurse=recurse, subs=subs,
-                       include_external_outputs=include_external_outputs, show_browser=show_browser,
-                       add_process_conns=add_process_conns, build_pdf=build_pdf,
-                       show_parallel=show_parallel, quiet=quiet, driver_type=driver_type,
-                       output_side=output_side, legend=legend, class_names=class_names,
-                       writer_options=writer_options, equations=equations, include_indepvarcomps=include_indepvarcomps,
-                       **kwargs)
+    return _write_xdsm(filename, viewer_data=viewer_data, driver=driver_name, include_solver=include_solver,
+                       model_path=model_path, design_vars=design_vars, responses=responses, writer=writer,
+                       recurse=recurse, subs=subs, include_external_outputs=include_external_outputs,
+                       show_browser=show_browser, add_process_conns=add_process_conns, build_pdf=build_pdf,
+                       show_parallel=show_parallel, quiet=quiet, driver_type=driver_type, output_side=output_side,
+                       legend=legend, class_names=class_names, writer_options=writer_options, equations=equations,
+                       include_indepvarcomps=include_indepvarcomps, **kwargs)
 
 
 def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanup=True,
@@ -1304,7 +1295,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
     cleanup : bool, optional
         Clean-up temporary files after making the diagram.
         Defaults to True.
-    design_vars : OrderedDict or None
+    design_vars : OrderedDict or None, optional
         Design variables
     responses : OrderedDict or None, , optional
         Responses
@@ -1323,13 +1314,13 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
     show_browser : bool, optional
         If True, pop up a browser to view the generated html file.
         Defaults to False.
-    add_process_conns : bool
+    add_process_conns : bool, optional
         Add process connections (thin black lines)
         Defaults to True.
-    show_parallel : bool
+    show_parallel : bool, optional
         Show parallel components with stacked blocks.
         Defaults to True.
-    quiet : bool
+    quiet : bool, optional
         Set to True to suppress output from pdflatex. Applicable only for 'tex' or 'pdf' output format.
     build_pdf : bool, optional
         If True and a .tex file is generated, create a .pdf file from the .tex.
@@ -1394,8 +1385,8 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
 
     def format_block(names, **kwargs):
         # Sets the width, number of lines and other string formatting for a block.
-        return x.format_block(names=names, box_width=box_width, box_lines=box_lines,
-                              box_stacking=box_stacking, **kwargs)
+        return x.format_block(names=names, box_width=box_width, box_lines=box_lines, box_stacking=box_stacking,
+                              **kwargs)
 
     def get_output_side(component_name):
         if isinstance(output_side, str):
@@ -1432,9 +1423,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
     solvers = []  # Solver labels
 
     conns1, external_inputs1, external_outputs1 = _prune_connections(connections, model_path=model_path)
-
     conns2 = _process_connections(conns1, recurse=recurse, subs=subs)
-
     external_inputs2 = _process_connections(external_inputs1, recurse=recurse, subs=subs)
     external_outputs2 = _process_connections(external_outputs1, recurse=recurse, subs=subs)
 
@@ -1456,8 +1445,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
                 del conns2[src]
 
     def add_solver(solver_dct):
-        # Adds a solver.
-        # Uses some vars from the outer scope.
+        # Adds a solver. Uses some vars from the outer scope.
         # Returns True, if it is a non-default linear or nonlinear solver
         comp_names = [_replace_illegal_chars(c['abs_name']) for c in solver_dct['comps']]
         solver_label = _format_solver_str(solver_dct, stacking=box_stacking)
@@ -1478,8 +1466,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
                 for tgt, conn_vars in dct.items():
                     formatted_conns = format_block(conn_vars)
                     if (src in comp_names) and (tgt in comp_names):
-                        formatted_targets = format_block([x.format_var_str(c, 'target')
-                                                          for c in conn_vars])
+                        formatted_targets = format_block([x.format_var_str(c, 'target') for c in conn_vars])
                         # From solver to components (targets)
                         x.connect(solver_name, tgt, formatted_targets)
                         # From components to solver

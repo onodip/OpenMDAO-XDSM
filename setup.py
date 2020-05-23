@@ -18,7 +18,7 @@ setup(
         'Programming Language :: Python',
     ],
     install_requires=[
-        'openmdao',  # 3.0.0-dev or above
+        'openmdao>=3.1.0',
         'numpy',
         'pyxdsm',
         'xdsmjs'

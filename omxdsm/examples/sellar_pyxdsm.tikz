@@ -13,7 +13,7 @@
 
 %%% End Preamble Requirements %%%
 
-\input{D:/Documents/GitHub/OpenMDAO-XDSM/venv_py/lib/site-packages/pyxdsm/diagram_styles}
+\input{"D:/Documents/GitHub/OpenMDAO-XDSM/venv_py/lib/site-packages/pyxdsm/diagram_styles"}
 \begin{tikzpicture}
 
 \matrix[MatrixSetup]{
@@ -152,12 +152,12 @@
 (obj@cmp) edge [DataLine] (obj@cmp-Driver)
 (con@cmp1) edge [DataLine] (con@cmp1-Driver)
 (con@cmp2) edge [DataLine] (con@cmp2-Driver)
-(cycle@d2) edge [DataLine] (cycle@d2-obj@cmp)
-(cycle@d2) edge [DataLine] (cycle@d2-con@cmp2)
-(cycle@d2) edge [DataLine] (cycle@d2-cycle@d1)
 (cycle@d1) edge [DataLine] (cycle@d1-obj@cmp)
 (cycle@d1) edge [DataLine] (cycle@d1-con@cmp1)
 (cycle@d1) edge [DataLine] (cycle@d1-cycle@d2)
+(cycle@d2) edge [DataLine] (cycle@d2-obj@cmp)
+(cycle@d2) edge [DataLine] (cycle@d2-con@cmp2)
+(cycle@d2) edge [DataLine] (cycle@d2-cycle@d1)
 (px) edge [DataLine] (px-cycle@d1)
 (px) edge [DataLine] (px-obj@cmp)
 (pz) edge [DataLine] (pz-cycle@d1)
@@ -175,12 +175,12 @@
 (obj@cmp-Driver) edge [DataLine] (Driver)
 (con@cmp1-Driver) edge [DataLine] (Driver)
 (con@cmp2-Driver) edge [DataLine] (Driver)
-(cycle@d2-obj@cmp) edge [DataLine] (obj@cmp)
-(cycle@d2-con@cmp2) edge [DataLine] (con@cmp2)
-(cycle@d2-cycle@d1) edge [DataLine] (cycle@d1)
 (cycle@d1-obj@cmp) edge [DataLine] (obj@cmp)
 (cycle@d1-con@cmp1) edge [DataLine] (con@cmp1)
 (cycle@d1-cycle@d2) edge [DataLine] (cycle@d2)
+(cycle@d2-obj@cmp) edge [DataLine] (obj@cmp)
+(cycle@d2-con@cmp2) edge [DataLine] (con@cmp2)
+(cycle@d2-cycle@d1) edge [DataLine] (cycle@d1)
 (px-cycle@d1) edge [DataLine] (cycle@d1)
 (px-obj@cmp) edge [DataLine] (obj@cmp)
 (pz-cycle@d1) edge [DataLine] (cycle@d1)
