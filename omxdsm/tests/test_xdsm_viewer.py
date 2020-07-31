@@ -699,6 +699,43 @@ class TestPyXDSMViewer(unittest.TestCase):
         # Check if file was created
         self.assertTrue(os.path.isfile(filename + '.' + out_format))
 
+    def test_auto_ivc(self):
+        """
+        Makes an XDSM of the Sphere test case. It also adds a design variable, constraint and
+        objective.
+        """
+
+        filename = 'xdsm2'
+
+        p = om.Problem()
+
+        p.model.add_subsystem('paraboloid',
+                              om.ExecComp('f = (x-3)**2 + x*y + (y+4)**2 - 3'),
+                              promotes_inputs=['x', 'y'])
+
+        # setup the optimization
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.options['optimizer'] = 'SLSQP'
+
+        p.model.add_design_var('x', lower=-50, upper=50)
+        p.model.add_design_var('y', lower=-50, upper=50)
+        p.model.add_objective('paraboloid.f')
+
+        p.setup()
+        p.final_setup()
+
+        # Write output
+        write_xdsm(p, filename=filename, out_format=PYXDSM_OUT, show_browser=SHOW, quiet=QUIET,
+                   include_indepvarcomps=False)
+
+        # Check if file was created
+        self.assertTrue(os.path.isfile(filename + '.tex'))
+
+        write_xdsm(p, filename=filename + '2', out_format=PYXDSM_OUT, show_browser=SHOW, quiet=QUIET,
+                   include_indepvarcomps=True)
+
+        # Check if file was created
+        self.assertTrue(os.path.isfile(filename + '2.tex'))
 
 @use_tempdirs
 class TestXDSMjsViewer(unittest.TestCase):

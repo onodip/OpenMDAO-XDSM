@@ -15,6 +15,7 @@ XDSMjs is available at https://github.com/OneraHub/XDSMjs.
 """
 
 import json
+from collections import OrderedDict
 from distutils.version import LooseVersion
 
 from numpy.distutils.exec_command import find_executable
@@ -39,9 +40,15 @@ _SUPERSCRIPTS = {'optimal': '*', 'initial': '(0)', 'target': 't', 'consistency':
 # Underscore is replaced with a skipped underscore
 # Round parenthesis is replaced with subscript syntax, e.g. x(1) --> x_{1}
 _CHAR_SUBS = {
-    'pyxdsm': (('_', r'\_'), ('(', '_{'), (')', '}'), (_SUPERSCRIPTS['initial0'], _SUPERSCRIPTS['initial'])),
+    'pyxdsm': (
+        ('_', r'\_'),
+        ('(', '_{'),
+        (')', '}'),
+        (_SUPERSCRIPTS['initial0'], _SUPERSCRIPTS['initial'])
+    ),
     'xdsmjs': ((' ', '-'), (':', ''), ('_', r'\_'), (_SUPERSCRIPTS['initial0'], _SUPERSCRIPTS['initial'])),
 }
+_AUTO_IVC_NAME = '@auto@ivc'
 
 # Default solver names in OpenMDAO, when no solver is assigned to a system.
 _DEFAULT_SOLVER_NAMES = {'linear': 'LN: RUNONCE', 'nonlinear': 'NL: RUNONCE'}
@@ -1431,7 +1438,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
         filtered_comp_names = [c['name'] for c in filtered_comps]
 
         for src, tgts in conns2.copy().items():
-            if src in filtered_comp_names:
+            if src in filtered_comp_names or (src == _AUTO_IVC_NAME):
                 if src in design_vars2:
                     for tgt in tgts:
                         dv_tgt = design_vars2.setdefault(tgt, [])
@@ -1518,6 +1525,31 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
                   'To enable this option install the package with "pip install pytexit".'
             simple_warning(msg)
 
+    has_auto_ivc = False
+
+    # Add the connections
+    for src, dct in conns2.items():
+        for tgt, conn_vars in dct.items():
+            if src and tgt:
+                if src == _AUTO_IVC_NAME:
+                    has_auto_ivc = True
+                src_parallel = comps_dct[src]['is_parallel'] if src in comps_dct else False
+                stack = show_parallel and (src_parallel or comps_dct[tgt]['is_parallel'])
+                x.connect(src, tgt, label=format_block(conn_vars), stack=stack)
+            else:  # Source or target missing
+                msg = 'Connection "{conn}" from "{src}" to "{tgt}" ignored.'
+                simple_warning(msg.format(src=src, tgt=tgt, conn=conn_vars))
+
+    if has_auto_ivc:
+        auto_ivc_comp = OrderedDict(name=_AUTO_IVC_NAME, stack=False, type="subsystem",
+                                    is_parallel=False, component_type=None, subsystem_type='component')
+        auto_ivc_comp["class"] = "IndepVarComp"
+        auto_ivc_comp["abs_name"] = auto_ivc_comp["name"]
+        if include_indepvarcomps:
+            comps.insert(0, auto_ivc_comp)
+        else:
+            filtered_comps.insert(0, auto_ivc_comp)
+
     for comp in comps:  # Driver is 1, so starting from 2
         # The second condition is for backwards compatibility with older data.
         if equations and comp.get('expressions', None) is not None:
@@ -1561,17 +1593,6 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
             x.add_workflow()  # Driver workflow
         for s in solver_dcts:
             x.add_workflow(s)  # Solver workflows
-
-    # Add the connections
-    for src, dct in conns2.items():
-        for tgt, conn_vars in dct.items():
-            if src and tgt:
-                stack = show_parallel and \
-                    (comps_dct[src]['is_parallel'] or comps_dct[tgt]['is_parallel'])
-                x.connect(src, tgt, label=format_block(conn_vars), stack=stack)
-            else:  # Source or target missing
-                msg = 'Connection "{conn}" from "{src}" to "{tgt}" ignored.'
-                simple_warning(msg.format(src=src, tgt=tgt, conn=conn_vars))
 
     # Add the externally sourced inputs
     for src, tgts in external_inputs2.items():
