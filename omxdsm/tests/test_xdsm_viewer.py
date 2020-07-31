@@ -701,8 +701,7 @@ class TestPyXDSMViewer(unittest.TestCase):
 
     def test_auto_ivc(self):
         """
-        Makes an XDSM of the Sphere test case. It also adds a design variable, constraint and
-        objective.
+        Tests a model with automatically added IndepVarComp.
         """
 
         filename = 'xdsm2'
