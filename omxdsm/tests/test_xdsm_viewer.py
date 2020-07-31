@@ -704,7 +704,7 @@ class TestPyXDSMViewer(unittest.TestCase):
         Tests a model with automatically added IndepVarComp.
         """
 
-        filename = 'xdsm2'
+        filename = 'xdsm_auto_ivc'
 
         p = om.Problem()
 
@@ -725,13 +725,13 @@ class TestPyXDSMViewer(unittest.TestCase):
 
         # Write output
         write_xdsm(p, filename=filename, out_format=PYXDSM_OUT, show_browser=SHOW, quiet=QUIET,
-                   include_indepvarcomps=False)
+                   include_indepvarcomps=False)  # Not showing the Auto IVC
 
         # Check if file was created
         self.assertTrue(os.path.isfile(filename + '.tex'))
 
         write_xdsm(p, filename=filename + '2', out_format=PYXDSM_OUT, show_browser=SHOW, quiet=QUIET,
-                   include_indepvarcomps=True)
+                   include_indepvarcomps=True)  # Showing the Auto IVC
 
         # Check if file was created
         self.assertTrue(os.path.isfile(filename + '2.tex'))
