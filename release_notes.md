@@ -84,3 +84,23 @@ April 25, 2020
 
 ## Bug Fixes:
 - None
+
+*************************************
+# Release Notes for OpenMDAO-XDSM 0.6
+
+July 31, 2020
+
+## Backwards Incompatible API Changes:
+
+- None
+
+## Backwards Incompatible NON-API Changes:
+
+- None
+
+## New Features:
+
+- Automatic IndepVarComps (new in OpenMDAO 3.2 - POEM_015) are supported.
+
+## Bug Fixes:
+- Models with Automatic IndepVarComps failed, which is now fixed.
