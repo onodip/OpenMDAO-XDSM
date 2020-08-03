@@ -46,7 +46,12 @@ _CHAR_SUBS = {
         (')', '}'),
         (_SUPERSCRIPTS['initial0'], _SUPERSCRIPTS['initial'])
     ),
-    'xdsmjs': ((' ', '-'), (':', ''), ('_', r'\_'), (_SUPERSCRIPTS['initial0'], _SUPERSCRIPTS['initial'])),
+    'xdsmjs': (
+        (' ', '-'),
+        (':', ''),
+        ('_', r'\_'),
+        (_SUPERSCRIPTS['initial0'], _SUPERSCRIPTS['initial'])
+    ),
 }
 _AUTO_IVC_NAME = '@auto@ivc'
 
@@ -1574,7 +1579,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
                 label = _replace_chars(comp['name'], substitutes=subs)
         else:
             label = _replace_chars(comp['name'], substitutes=subs)
-        stack = comp['is_parallel'] and show_parallel
+        stack = show_parallel and comp['is_parallel']
         if include_solver and comp['type'] == 'solver':  # solver
             if add_solver(comp):  # Return value is true, if solver is not the default
                 # If not default solver, add to the solver dictionary
@@ -1599,7 +1604,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
         for tgt, conn_vars in tgts.items():
             formatted_conn_vars = [_replace_chars(o, substitutes=subs) for o in conn_vars]
             if tgt:
-                stack = comps_dct[tgt]['is_parallel'] and show_parallel
+                stack = show_parallel and comps_dct[tgt]['is_parallel']
                 x.add_input(tgt, format_block(formatted_conn_vars), stack=stack)
             else:  # Target missing
                 msg = 'External input to "{tgt}" ignored.'
@@ -1613,7 +1618,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
                 output_vars |= set(conn_vars)
             formatted_outputs = [_replace_chars(o, subs) for o in output_vars]
             if src:
-                stack = comps_dct[src]['is_parallel'] and show_parallel
+                stack = show_parallel and comps_dct[src]['is_parallel']
                 x.add_output(src, formatted_outputs, side='right', stack=stack)
             else:  # Source or target missing
                 msg = 'External output "{conn}" from "{src}" ignored.'

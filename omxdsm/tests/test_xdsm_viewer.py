@@ -1218,6 +1218,43 @@ class TestXDSMjsViewer(unittest.TestCase):
         filename = os.path.abspath(sellar.__file__)
         check_call('openmdao xdsm --no_browser {}'.format(filename))
 
+    def test_auto_ivc(self):
+        """
+        Tests a model with automatically added IndepVarComp.
+        """
+
+        filename = 'xdsm_auto_ivc'
+
+        p = om.Problem()
+
+        p.model.add_subsystem('paraboloid',
+                              om.ExecComp('f = (x-3)**2 + x*y + (y+4)**2 - 3'),
+                              promotes_inputs=['x', 'y'])
+
+        # setup the optimization
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.options['optimizer'] = 'SLSQP'
+
+        p.model.add_design_var('x', lower=-50, upper=50)
+        p.model.add_design_var('y', lower=-50, upper=50)
+        p.model.add_objective('paraboloid.f')
+
+        p.setup()
+        p.final_setup()
+
+        # Write output
+        write_xdsm(p, filename=filename, out_format='html', show_browser=SHOW, quiet=QUIET,
+                   include_indepvarcomps=False)  # Not showing the Auto IVC
+
+        # Check if file was created
+        self.assertTrue(os.path.isfile(filename + '.html'))
+
+        write_xdsm(p, filename=filename + '2', out_format='html', show_browser=SHOW, quiet=QUIET,
+                   include_indepvarcomps=True)  # Showing the Auto IVC
+
+        # Check if file was created
+        self.assertTrue(os.path.isfile(filename + '2.html'))
+
 
 @unittest.skipUnless(XDSM, "The pyXDSM package is required.")
 @use_tempdirs
