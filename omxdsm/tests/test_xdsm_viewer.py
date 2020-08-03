@@ -739,6 +739,7 @@ class TestPyXDSMViewer(unittest.TestCase):
         # Check if file was created
         self.assertTrue(os.path.isfile(filename + '2.tex'))
 
+
 @use_tempdirs
 class TestXDSMjsViewer(unittest.TestCase):
 

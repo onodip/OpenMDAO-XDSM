@@ -44,12 +44,14 @@ _CHAR_SUBS = {
         ('_', r'\_'),
         ('(', '_{'),
         (')', '}'),
+        ('@', r'\_'),
         (_SUPERSCRIPTS['initial0'], _SUPERSCRIPTS['initial'])
     ),
     'xdsmjs': (
         (' ', '-'),
         (':', ''),
         ('_', r'\_'),
+        ('@', '_'),
         (_SUPERSCRIPTS['initial0'], _SUPERSCRIPTS['initial'])
     ),
 }
@@ -1421,8 +1423,8 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
 
     connections = viewer_data['connections_list']
     tree = viewer_data['tree']
-    print("DEBUG::: Tree: ", tree)
-    print("DEBUG::: Connections: ", connections)
+    # print("DEBUG::: Tree: ", tree)
+    # print("DEBUG::: Connections: ", connections)
 
     # Get the top level system to be transcripted to XDSM
     comps, filtered_comps = _get_comps(tree, model_path=model_path, recurse=recurse, include_solver=include_solver,
@@ -1445,13 +1447,14 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
         filtered_comp_names = [c['name'] for c in filtered_comps]
 
         for src, tgts in conns2.copy().items():
+            print("Source: ", src)
             if src in filtered_comp_names or (src == _AUTO_IVC_NAME):
                 if src in design_vars2:
                     for tgt in tgts:
                         dv_tgt = design_vars2.setdefault(tgt, [])
                         dv_tgt += design_vars2[src]
                     del design_vars2[src]
-                else:
+                else:  # Make external input from it
                     for tgt in tgts:
                         var_names = conns2[src][tgt]
                         var_names = [x.format_var_str(var, 'initial0') for var in var_names]  # make them initial vals
@@ -1470,7 +1473,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
 
         if isinstance(solver_label, str):
             solver_label = replace_chars(solver_label)
-        else:
+        else:  # It is an iterable
             solver_label = [replace_chars(i) for i in solver_label]
         solver_name = _replace_illegal_chars(solver_dct['abs_name'])
 
