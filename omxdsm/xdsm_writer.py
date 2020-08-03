@@ -1456,6 +1456,9 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
                         external_inputs2.setdefault(tgt, {}).setdefault(tgt, []).extend(var_names)
                 del conns2[src]
 
+    def replace_chars(name):
+        return _replace_chars(name, subs)
+
     def add_solver(solver_dct):
         # Adds a solver. Uses some vars from the outer scope.
         # Returns True, if it is a non-default linear or nonlinear solver
@@ -1463,9 +1466,9 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
         solver_label = _format_solver_str(solver_dct, stacking=box_stacking)
 
         if isinstance(solver_label, str):
-            solver_label = _replace_chars(solver_label, subs)
+            solver_label = replace_chars(solver_label)
         else:
-            solver_label = [_replace_chars(i, subs) for i in solver_label]
+            solver_label = [replace_chars(i) for i in solver_label]
         solver_name = _replace_illegal_chars(solver_dct['abs_name'])
 
         if solver_label:  # At least one non-default solver (default solvers are ignored)
@@ -1501,17 +1504,17 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
             # Initial var names
             init_con_vars = [x.format_var_str(var, 'initial') for var in conn_vars]
             # Connection from optimizer
-            x.connect(driver_name, comp, format_block(conn_vars))
+            x.connect(driver_name, comp, label=format_block(conn_vars))
             # Optimal design variables
-            x.add_output(comp, format_block(opt_con_vars), side=get_output_side('default'))
-            x.add_output(driver_name, format_block(opt_con_vars), side=get_output_side(driver_type))
+            x.add_output(comp, label=format_block(opt_con_vars), side=get_output_side('default'))
+            x.add_output(driver_name, label=format_block(opt_con_vars), side=get_output_side(driver_type))
             # Initial design variables
-            x.add_input(driver_name, format_block(init_con_vars))
+            x.add_input(driver_name, label=format_block(init_con_vars))
 
         # Responses
         for comp, conn_vars in responses2.items():
             # Optimal var names
-            conn_vars = [_replace_chars(var, subs) for var in conn_vars]
+            conn_vars = [replace_chars(var) for var in conn_vars]
             opt_con_vars = [x.format_var_str(var, 'optimal') for var in conn_vars]
             # Connection to optimizer
             x.connect(comp, driver_name, conn_vars)
@@ -1538,6 +1541,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
             if src and tgt:
                 if src == _AUTO_IVC_NAME:
                     has_auto_ivc = True
+                # Because Auto-IVC not in comps, it has to be skipped
                 src_parallel = comps_dct[src]['is_parallel'] if src in comps_dct else False
                 stack = show_parallel and (src_parallel or comps_dct[tgt]['is_parallel'])
                 x.connect(src, tgt, label=format_block(conn_vars), stack=stack)
@@ -1546,14 +1550,14 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
                 simple_warning(msg.format(src=src, tgt=tgt, conn=conn_vars))
 
     if has_auto_ivc:
-        auto_ivc_comp = OrderedDict(name=_AUTO_IVC_NAME, stack=False, type="subsystem",
+        auto_ivc_comp = OrderedDict(name=_AUTO_IVC_NAME, stack=False, type="subsystem", expressions=None,
                                     is_parallel=False, component_type=None, subsystem_type='component')
         auto_ivc_comp["class"] = "IndepVarComp"
         auto_ivc_comp["abs_name"] = auto_ivc_comp["name"]
         if include_indepvarcomps:
-            comps.insert(0, auto_ivc_comp)
+            comps.insert(0, auto_ivc_comp)  # Auto-IVC added as the first component
         else:
-            filtered_comps.insert(0, auto_ivc_comp)
+            filtered_comps.insert(0, auto_ivc_comp)  # Auto-IVC added as the first filtered component (not on the XDSM)
 
     for comp in comps:  # Driver is 1, so starting from 2
         # The second condition is for backwards compatibility with older data.
@@ -1561,7 +1565,8 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
             # One of the $ signs has to be removed to correctly parse it
             if isinstance(x, XDSMWriter):
                 def parse(expr):
-                    for (ch, rep) in (('$$', '$'), (r'[', '_'), (r']', '')):
+                    # TODO add curly brackets to support multiple digit index
+                    for (ch, rep) in (('$$', '$'), (r'[', '_'), (r']', '')):  # brackets converted to lower index
                         expr = expr.replace(ch, rep)
                     # One of the $ signs has to be removed to correctly parse it
                     return py2tex(expr).replace('$$', '$')
@@ -1570,15 +1575,15 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
                 try:
                     label = ', '.join(map(parse, expression))
                 except TypeError:
-                    label = _replace_chars(comp['name'], substitutes=subs)
+                    label = replace_chars(comp['name'])
                     simple_warning('Could not parse "{}"'.format(expression))
             else:
                 msg = 'The "equations" option is available only with pyXDSM. Set the output ' \
                       'format to "tex" or "pdf" to enable this option.'
                 simple_warning(msg)
-                label = _replace_chars(comp['name'], substitutes=subs)
+                label = replace_chars(comp['name'])
         else:
-            label = _replace_chars(comp['name'], substitutes=subs)
+            label = replace_chars(comp['name'])
         stack = show_parallel and comp['is_parallel']
         if include_solver and comp['type'] == 'solver':  # solver
             if add_solver(comp):  # Return value is true, if solver is not the default
@@ -1602,7 +1607,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
     # Add the externally sourced inputs
     for src, tgts in external_inputs2.items():
         for tgt, conn_vars in tgts.items():
-            formatted_conn_vars = [_replace_chars(o, substitutes=subs) for o in conn_vars]
+            formatted_conn_vars = [replace_chars(o) for o in conn_vars]
             if tgt:
                 stack = show_parallel and comps_dct[tgt]['is_parallel']
                 x.add_input(tgt, format_block(formatted_conn_vars), stack=stack)
@@ -1616,7 +1621,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
             output_vars = set()
             for tgt, conn_vars in tgts.items():
                 output_vars |= set(conn_vars)
-            formatted_outputs = [_replace_chars(o, subs) for o in output_vars]
+            formatted_outputs = [replace_chars(o) for o in output_vars]
             if src:
                 stack = show_parallel and comps_dct[src]['is_parallel']
                 x.add_output(src, formatted_outputs, side='right', stack=stack)
