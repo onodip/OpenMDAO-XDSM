@@ -1,5 +1,6 @@
 import os
 import unittest
+from distutils.version import LooseVersion
 
 import numpy as np
 import openmdao.api as om
@@ -11,6 +12,7 @@ from openmdao.utils.assert_utils import assert_warning
 from openmdao.utils.shell_proc import check_call
 from openmdao.utils.testing_utils import use_tempdirs
 from pyxdsm.XDSM import XDSM
+from openmdao import __version__ as om_version
 
 from omxdsm import write_xdsm, write_html
 
@@ -699,6 +701,7 @@ class TestPyXDSMViewer(unittest.TestCase):
         # Check if file was created
         self.assertTrue(os.path.isfile(filename + '.' + out_format))
 
+    @unittest.skipUnless(LooseVersion(om_version) >= LooseVersion('3.2'), 'Auto-IVC introduced in OpenMDAO 3.2')
     def test_auto_ivc(self):
         """
         Tests a model with automatically added IndepVarComp.
@@ -1218,6 +1221,7 @@ class TestXDSMjsViewer(unittest.TestCase):
         filename = os.path.abspath(sellar.__file__)
         check_call('openmdao xdsm --no_browser {}'.format(filename))
 
+    @unittest.skipUnless(LooseVersion(om_version) >= LooseVersion('3.2'), 'Auto-IVC introduced in OpenMDAO 3.2')
     def test_auto_ivc(self):
         """
         Tests a model with automatically added IndepVarComp.

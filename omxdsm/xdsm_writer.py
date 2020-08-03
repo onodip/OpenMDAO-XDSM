@@ -1421,6 +1421,8 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
 
     connections = viewer_data['connections_list']
     tree = viewer_data['tree']
+    print("DEBUG::: Tree: ", tree)
+    print("DEBUG::: Connections: ", connections)
 
     # Get the top level system to be transcripted to XDSM
     comps, filtered_comps = _get_comps(tree, model_path=model_path, recurse=recurse, include_solver=include_solver,
@@ -1439,7 +1441,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
     external_inputs2 = _process_connections(external_inputs1, recurse=recurse, subs=subs)
     external_outputs2 = _process_connections(external_outputs1, recurse=recurse, subs=subs)
 
-    if not include_indepvarcomps:
+    if not include_indepvarcomps:  # Reconnect connections
         filtered_comp_names = [c['name'] for c in filtered_comps]
 
         for src, tgts in conns2.copy().items():
@@ -1457,7 +1459,8 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
                 del conns2[src]
 
     def replace_chars(name):
-        return _replace_chars(name, subs)
+        # A shorthand for the functions, since within this scope the same always substitutes are used.
+        return _replace_chars(name, substitutes=subs)
 
     def add_solver(solver_dct):
         # Adds a solver. Uses some vars from the outer scope.
@@ -1498,7 +1501,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
         # Design variables
         for comp, conn_vars in design_vars2.items():
             # Format var names
-            conn_vars = [_replace_chars(var, subs) for var in conn_vars]
+            conn_vars = [replace_chars(var) for var in conn_vars]
             # Optimal var names
             opt_con_vars = [x.format_var_str(var, 'optimal') for var in conn_vars]
             # Initial var names
