@@ -1613,7 +1613,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
     # Add the externally sourced inputs
     for src, tgts in external_inputs2.items():
         for tgt, conn_vars in tgts.items():
-            formatted_conn_vars = [replace_chars(o) for o in conn_vars]
+            formatted_conn_vars = map(replace_chars, conn_vars)
             if tgt:
                 stack = show_parallel and comps_dct[tgt]['is_parallel']
                 x.add_input(tgt, format_block(formatted_conn_vars), stack=stack)
@@ -1627,7 +1627,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
             output_vars = set()
             for tgt, conn_vars in tgts.items():
                 output_vars |= set(conn_vars)
-            formatted_outputs = [replace_chars(o) for o in output_vars]
+            formatted_outputs = map(replace_chars, output_vars)
             if src:
                 stack = show_parallel and comps_dct[src]['is_parallel']
                 x.add_output(src, formatted_outputs, side='right', stack=stack)
