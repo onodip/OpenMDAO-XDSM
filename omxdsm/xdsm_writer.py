@@ -56,6 +56,7 @@ _CHAR_SUBS = {
     ),
 }
 _AUTO_IVC_NAME = '@auto@ivc'
+_CONNECTION_NAMING = 'mixed'  # Auto-IVC connections inherit the name from the target, if it is set to 'mixed'
 
 # Default solver names in OpenMDAO, when no solver is assigned to a system.
 _DEFAULT_SOLVER_NAMES = {'linear': 'LN: RUNONCE', 'nonlinear': 'NL: RUNONCE'}
@@ -1397,6 +1398,10 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
     else:
         raise TypeError(error_msg.format(writer))
 
+    def replace_chars(name):
+        # A shorthand for the functions, since within this scope the same always substitutes are used.
+        return _replace_chars(name, substitutes=subs)
+
     def format_block(names, **kwargs):
         # Sets the width, number of lines and other string formatting for a block.
         return x.format_block(names=names, box_width=box_width, box_lines=box_lines, box_stacking=box_stacking,
@@ -1414,17 +1419,16 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
             msg = 'Output side argument should be string or dictionary, instead it is a {}.'
             raise ValueError(msg.format(type(output_side)))
 
+    connections = viewer_data['connections_list']
+    tree = viewer_data['tree']
+
     if driver is not None:
-        design_vars2 = _collect_connections(design_vars, recurse=recurse, model_path=model_path)
+        design_vars2 = _collect_connections(design_vars, recurse=recurse, model_path=model_path,
+                                            connection_namer=_CONNECTION_NAMING, connections=connections)
         responses2 = _collect_connections(responses, recurse=recurse, model_path=model_path)
     else:
         design_vars2 = {}
         responses2 = {}
-
-    connections = viewer_data['connections_list']
-    tree = viewer_data['tree']
-    # print("DEBUG::: Tree: ", tree)
-    # print("DEBUG::: Connections: ", connections)
 
     # Get the top level system to be transcripted to XDSM
     comps, filtered_comps = _get_comps(tree, model_path=model_path, recurse=recurse, include_solver=include_solver,
@@ -1460,10 +1464,6 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
                         var_names = [x.format_var_str(var, 'initial0') for var in var_names]  # make them initial vals
                         external_inputs2.setdefault(tgt, {}).setdefault(tgt, []).extend(var_names)
                 del conns2[src]
-
-    def replace_chars(name):
-        # A shorthand for the functions, since within this scope the same always substitutes are used.
-        return _replace_chars(name, substitutes=subs)
 
     def add_solver(solver_dct):
         # Adds a solver. Uses some vars from the outer scope.
@@ -1544,6 +1544,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
     # Add the connections
     for src, dct in conns2.items():
         for tgt, conn_vars in dct.items():
+            print("DEBUG::: ", src, tgt, conn_vars)
             if src and tgt:
                 if src == _AUTO_IVC_NAME:
                     has_auto_ivc = True
@@ -1662,16 +1663,54 @@ def _residual_str(name):
 
 
 def _process_connections(conns, recurse=True, subs=None):
+    """
+    Extracts information from the source and target paths.
 
+    For each source and target returns the owner component (comp), variable name (var), absolute name and path.
+
+    Parameters
+    ----------
+    conns : list(dict(str, str))
+        List of source target pairs.
+    recurse : bool, optional
+    subs : list(tuple) or None, optional
+        Character substitutes.
+        Defaults to None.
+
+    Returns
+    -------
+        list(dict(str, dict))
+    """
     def convert(x):
         return _convert_name(x, recurse=recurse, subs=subs)
 
     conns_new = [{k: convert(v) for k, v in conn.items() if k in ('src', 'tgt')} for conn in conns]
-    return _accumulate_connections(conns_new)
+    return _accumulate_connections(conns_new, connection_namer=_CONNECTION_NAMING)
 
 
-def _accumulate_connections(conns):
-    # Makes a dictionary with source and target components and with the connection sources
+def _accumulate_connections(conns, connection_namer='mixed'):
+    """
+    Makes a dictionary with source and target components and with the connection sources.
+
+    Returns a dictionary, where the keys are the source components, and the values are dictionaries of target components
+    and the connection names.
+
+    Example::
+
+        {'source_comp1': {'target_comp1': ['var1', 'var2']}}
+
+    Parameters
+    ----------
+    conns : list
+        Connections.
+    connection_namer : str, optional
+        Defaults to "mixed", where in case of Auto-IVC the target names are used, otherwise the source names.
+        Other valid options are
+
+    Returns
+    -------
+        dict(str, dict)
+    """
     name_type = 'path'
     conns_new = dict()
     for conn in conns:  # list
@@ -1680,19 +1719,61 @@ def _accumulate_connections(conns):
         if src_comp == tgt_comp:
             # When recurse is False, ignore connections within the same subsystem.
             continue
-        var = conn['src']['var']
+        # From which component the connection get it's name
+        if connection_namer == "both":
+            var = f"{conn['src']['var']}-{conn['tgt']['var']}"
+        elif connection_namer == "mixed":
+            namer = 'src' if src_comp != _AUTO_IVC_NAME else 'tgt'
+            var = conn[namer]['var']
+        else:
+            var = conn[connection_namer]['var']
         conns_new.setdefault(src_comp, {})
         if var not in conns_new[src_comp].setdefault(tgt_comp, []):  # Avoid duplicates
             conns_new[src_comp][tgt_comp].append(var)
     return conns_new
 
 
-def _collect_connections(variables, recurse, model_path=None):
+def _collect_connections(variables, recurse, model_path=None, connections=None, connection_namer='src'):
+    """
+    Collect connections of components.
+
+    Parameters
+    ----------
+    variables : OrderedDict(str, OrderedDict)
+        Info on connections, keys are source absolute path names.
+    recurse : bool
+    model_path : str or None, optional
+        Defaults to None.
+    connections : list(dict) or None, optional
+        Connections. Only used if connection_namer is not 'src'
+    connection_namer : str, optional
+        Defaults to 'src'. Other valid options are 'tgt' or 'mixed' ('tgt' used only for Auto-IVC)
+
+    Returns
+    -------
+        dict(str, list)
+    """
+
     conv_vars = [_convert_name(v, recurse) for v in variables]
-    connections = dict()
+    print("DEBUG::: conns", connections)
+    if connection_namer != 'src':
+        tgt_vars = {_convert_name(c['src'], recurse)['abs_name']: _convert_name(c['tgt'], recurse) for c in connections if c['src'] in variables}
+    connections = dict()  # Initialize
     for conv_var in conv_vars:
         path = _make_rel_path(conv_var['path'], model_path=model_path)
-        connections.setdefault(path, []).append(conv_var['var'])
+        if connection_namer == 'src':
+            var_name = conv_var['var']
+        elif connection_namer == 'tgt':
+            var_name = tgt_vars[conv_var['abs_name']]['var']
+        elif connection_namer == 'mixed':
+            print(conv_var['comp'])
+            if conv_var['comp'].replace('_', '@') == _AUTO_IVC_NAME:
+                var_name = tgt_vars[conv_var['abs_name']]['var']
+            else:
+                var_name = conv_var['var']
+        else:
+            raise ValueError(f'Invalid connection namer "{connection_namer}", choose from "src", "tgt" or "mixed"')
+        connections.setdefault(path, []).append(var_name)
     return connections
 
 
@@ -1738,7 +1819,7 @@ def _convert_name(name, recurse=True, subs=None):
         if recurse:
             if len(name_items) > 1:
                 comp = name_items[-2]  # -1 is variable name, before that -2 is the component name
-                path = abs_name.rsplit(sep, 1)[0]
+                path = _get_path(abs_name, sep=sep)
             else:
                 msg = ('The name "{}" cannot be processed. The separator character is "{}", '
                        'which does not occur in the name.')
@@ -1759,7 +1840,7 @@ def _convert_name(name, recurse=True, subs=None):
 
 def _replace_illegal_chars(name, illegal_cars=('.', ' ', '-', '_', ':')):
     # Replaces illegal characters in names for pyXDSM component and connection names
-    # This does not effect the labels, only reference names TikZ
+    # This does not effect the labels, only reference names in TikZ
     if isinstance(name, str):
         for char in illegal_cars:
             name = name.replace(char, '@')
