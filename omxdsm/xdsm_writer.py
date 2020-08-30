@@ -1451,7 +1451,6 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
         filtered_comp_names = [c['name'] for c in filtered_comps]
 
         for src, tgts in conns2.copy().items():
-            print("Source: ", src)
             if src in filtered_comp_names or (src == _AUTO_IVC_NAME):
                 if src in design_vars2:
                     for tgt in tgts:
@@ -1544,7 +1543,6 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
     # Add the connections
     for src, dct in conns2.items():
         for tgt, conn_vars in dct.items():
-            print("DEBUG::: ", src, tgt, conn_vars)
             if src and tgt:
                 if src == _AUTO_IVC_NAME:
                     has_auto_ivc = True
@@ -1755,7 +1753,6 @@ def _collect_connections(variables, recurse, model_path=None, connections=None, 
     """
 
     conv_vars = [_convert_name(v, recurse) for v in variables]
-    print("DEBUG::: conns", connections)
     if connection_namer != 'src':
         tgt_vars = {_convert_name(c['src'], recurse)['abs_name']: _convert_name(c['tgt'], recurse) for c in connections if c['src'] in variables}
     connections = dict()  # Initialize
@@ -1766,7 +1763,6 @@ def _collect_connections(variables, recurse, model_path=None, connections=None, 
         elif connection_namer == 'tgt':
             var_name = tgt_vars[conv_var['abs_name']]['var']
         elif connection_namer == 'mixed':
-            print(conv_var['comp'])
             if conv_var['comp'].replace('_', '@') == _AUTO_IVC_NAME:
                 var_name = tgt_vars[conv_var['abs_name']]['var']
             else:
