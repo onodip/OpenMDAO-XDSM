@@ -11,13 +11,14 @@ try:  # This should work until OpenMDAO 3.20
         write_script,
         write_style,
     )
-except ModuleNotFoundError:
+except ModuleNotFoundError:  # They are imported directly if the OpenMDAO import fails
     from omxdsm.html_utils import (
         write_div,
         head_and_body,
         write_script,
         write_style,
     )
+
 
 def write_html(
     outfile, source_data=None, data_file=None, embeddable=False, char_set="utf-8"

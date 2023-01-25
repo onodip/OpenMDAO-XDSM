@@ -1,7 +1,7 @@
 """
 Functions to write HTML elements.
 
-This function were part of OpenMDAO until version 3.20.
+These functions were part of OpenMDAO until version 3.20.
 """
 import os
 
