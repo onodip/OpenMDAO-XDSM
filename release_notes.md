@@ -1,4 +1,24 @@
 *************************************
+# Release Notes for OpenMDAO-XDSM 0.7
+
+January 27, 2023
+
+## Backwards Incompatible API Changes:
+
+- None
+
+## Backwards Incompatible NON-API Changes:
+
+- None
+
+## New Features:
+
+- Compatibility with OpenMDAO 3.21 and beyond.
+
+## Bug Fixes:
+- None
+
+*************************************
 # Release Notes for OpenMDAO-XDSM 0.6
 
 July 31, 2020
@@ -92,7 +112,7 @@ March 14, 2020
 
 ## Backwards Incompatible NON-API Changes:
 
-- Depencencies of the `six` package were removed. That means, that OpenMDAO-XDSM will be compatible only with 
+- Dependencies of the `six` package were removed. That means, that OpenMDAO-XDSM will be compatible only with 
     Python 3 (OpenMDAO 3 also dropped the Python 2 compatibility) 
 
 ## New Features:
