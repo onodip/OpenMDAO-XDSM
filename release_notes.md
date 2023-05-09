@@ -1,4 +1,25 @@
 *************************************
+# Release Notes for OpenMDAO-XDSM 0.8
+
+May 9, 2023
+
+## Backwards Incompatible API Changes:
+
+- None
+
+## Backwards Incompatible NON-API Changes:
+
+- None
+
+## New Features:
+
+- Compatibility with OpenMDAO 3.26 and beyond.
+
+## Bug Fixes:
+- Sellar example updates. In the current version include_indepvarcomps=False, class_names=False 
+    options need to be used to create PDFs. To be fixed in a future release.
+
+*************************************
 # Release Notes for OpenMDAO-XDSM 0.7
 
 January 27, 2023
