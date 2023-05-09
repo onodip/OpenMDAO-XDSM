@@ -789,7 +789,7 @@ class XDSMWriter(XDSM, BaseXDSMWriter):
             label = self.finalize_label(i, label, self.number_alignment,
                                         class_name=comp['class'])
 
-            # Convert from math mode to regular text, if it is a one liner wrapped in math mode
+            # Convert from math mode to regular text, if it is a one-liner wrapped in math mode
             if isinstance(label, str):
                 label = _textify(label)
             comp['label'] = label  # Now the label is finished.
@@ -1057,7 +1057,8 @@ class XDSMWriter(XDSM, BaseXDSMWriter):
             txt = [txt]  # Make iterable, it will be converted back if there is only 1 line.
 
         if self.class_names and (class_name is not None):
-            cls_name = r'\textit{{{}}}'.format(class_name)  # Makes it italic
+            # Italic text. Replaces underscores with escaped underscores.
+            cls_name = r'\textit{{{}}}'.format(_replace_chars(class_name, substitutes=(('_', r'\_'),)))
             txt.append(cls_name)  # Class name goes to a new line
         if number:  # If number is None or empty string, it won't be inserted
             number_str = '{}: '.format(number)
