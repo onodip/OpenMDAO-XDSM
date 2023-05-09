@@ -15,12 +15,16 @@ XDSMjs is available at https://github.com/OneraHub/XDSMjs.
 """
 
 import json
+import warnings
 from collections import OrderedDict
 from distutils.version import LooseVersion
 
 from numpy.distutils.exec_command import find_executable
 from openmdao.api import Problem
-from openmdao.utils.general_utils import simple_warning
+try:
+    from openmdao.utils.general_utils import simple_warning
+except ImportError:
+    simple_warning = warnings.warn
 from openmdao.visualization.n2_viewer.n2_viewer import _get_viewer_data
 from pyxdsm.XDSM import XDSM
 
@@ -1261,7 +1265,7 @@ def write_xdsm(data_source, filename, model_path=None, recurse=True,
         except KeyError:
             msg = 'Invalid output format "{}", choose from: {}'
             raise ValueError(msg.format(out_format, _OUT_FORMATS.keys()))
-        writer_name = writer.lower()  # making it case insensitive
+        writer_name = writer.lower()  # making it case-insensitive
         if isinstance(subs, dict):
             subs = subs[writer_name]  # Getting the character substitutes of the chosen writer
     else:
@@ -1312,7 +1316,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
         Defaults to True.
     design_vars : OrderedDict or None, optional
         Design variables
-    responses : OrderedDict or None, , optional
+    responses : OrderedDict or None, optional
         Responses
     model_path : str or None, optional
         Path to the subsystem to be transcribed to XDSM.  If None, use the model root.
@@ -2017,7 +2021,7 @@ def _replace_chars(name, substitutes):
     """
     Replace characters in `name` with the substitute characters.
 
-    If some of the characters are both to be replaced or other characters are replaced with them
+    If some characters are both to be replaced or other characters are replaced with them
     (e.g.: ? -> !, ! ->#), than it is not safe to give a dictionary as the `substitutes`
     (because it is unordered).
 

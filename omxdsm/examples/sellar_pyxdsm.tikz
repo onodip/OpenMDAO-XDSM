@@ -19,9 +19,7 @@
 \matrix[MatrixSetup]{
 %Row 0
 &
-\node [DataIO] (output_Driver) {$\begin{array}{c}x^{(0)}\end{array}$};&
-&
-&
+\node [DataIO] (output_Driver) {$\begin{array}{c}z^{(0)} \\ x^{(0)}\end{array}$};&
 &
 &
 &
@@ -29,96 +27,60 @@
 &
 \\
 %Row 1
-\node [DataIO] (left_output_Driver) {$\begin{array}{c}x^{*}\end{array}$};&
-\node [Optimization] (Driver) {$\text{\text{0, 9 $ \rightarrow $ 1: Driver}}$};&
-\node [DataInter] (Driver-px) {$\begin{array}{c}x\end{array}$};&
-\node [DataInter] (Driver-pz) {$\begin{array}{c}z\end{array}$};&
-&
-&
-&
+\node [DataIO] (left_output_Driver) {$\begin{array}{c}z^{*} \\ x^{*}\end{array}$};&
+\node [Optimization] (Driver) {$\text{\text{0, 7 $ \rightarrow $ 1: Driver}}$};&
+\node [DataInter] (Driver-cycle@d1) {$\begin{array}{c}z \\ x\end{array}$};&
+\node [DataInter] (Driver-cycle@d2) {$\begin{array}{c}z \\ x\end{array}$};&
+\node [DataInter] (Driver-obj@cmp) {$\begin{array}{c}z \\ x\end{array}$};&
 &
 &
 \\
 %Row 2
-\node [DataIO] (left_output_px) {$\begin{array}{c}x^{*}\end{array}$};&
+\node [DataIO] (left_output_cycle@d1) {$\begin{array}{c}z^{*} \\ x^{*}\end{array}$};&
 &
-\node [Function] (px) {$\begin{array}{c}\text{1: px} \\ \text{\textit{IndepVarComp}}\end{array}$};&
-&
-\node [DataInter] (px-cycle@d1) {$\begin{array}{c}x\end{array}$};&
-&
-\node [DataInter] (px-obj@cmp) {$\begin{array}{c}x\end{array}$};&
-&
-&
-\\
-%Row 3
-\node [DataIO] (left_output_pz) {$\begin{array}{c}z^{*}\end{array}$};&
-&
-&
-\node [Function] (pz) {$\begin{array}{c}\text{2: pz} \\ \text{\textit{IndepVarComp}}\end{array}$};&
-\node [DataInter] (pz-cycle@d1) {$\begin{array}{c}z\end{array}$};&
-\node [DataInter] (pz-cycle@d2) {$\begin{array}{c}z\end{array}$};&
-\node [DataInter] (pz-obj@cmp) {$\begin{array}{c}z\end{array}$};&
-&
-&
-\\
-%Row 4
-&
-&
-&
-&
-\node [Function] (cycle@d1) {$\begin{array}{c}\text{3: d1} \\ \text{\textit{SellarDis1}}\end{array}$};&
+\node [Function] (cycle@d1) {$\text{\text{1: d1}}$};&
 \node [DataInter] (cycle@d1-cycle@d2) {$\begin{array}{c}y1\end{array}$};&
 \node [DataInter] (cycle@d1-obj@cmp) {$\begin{array}{c}y1\end{array}$};&
 \node [DataInter] (cycle@d1-con@cmp1) {$\begin{array}{c}y1\end{array}$};&
 &
 \\
-%Row 5
-&
-&
-&
+%Row 3
+\node [DataIO] (left_output_cycle@d2) {$\begin{array}{c}z^{*} \\ x^{*}\end{array}$};&
 &
 \node [DataInter] (cycle@d2-cycle@d1) {$\begin{array}{c}y2\end{array}$};&
-\node [Function] (cycle@d2) {$\begin{array}{c}\text{4: d2} \\ \text{\textit{SellarDis2}}\end{array}$};&
+\node [Function] (cycle@d2) {$\text{\text{2: d2}}$};&
 \node [DataInter] (cycle@d2-obj@cmp) {$\begin{array}{c}y2\end{array}$};&
 &
 \node [DataInter] (cycle@d2-con@cmp2) {$\begin{array}{c}y2\end{array}$};&
 \\
-%Row 6
+%Row 4
 \node [DataIO] (left_output_obj@cmp) {$\begin{array}{c}obj^{*}\end{array}$};&
 \node [DataInter] (obj@cmp-Driver) {$\begin{array}{c}obj\end{array}$};&
 &
 &
-&
-&
-\node [Function] (obj@cmp) {$\begin{array}{c}\text{5: obj\_cmp} \\ \text{\textit{ExecComp}}\end{array}$};&
+\node [Function] (obj@cmp) {$\text{\text{3: obj\_cmp}}$};&
 &
 &
 \\
-%Row 7
+%Row 5
 \node [DataIO] (left_output_con@cmp1) {$\begin{array}{c}con1^{*}\end{array}$};&
 \node [DataInter] (con@cmp1-Driver) {$\begin{array}{c}con1\end{array}$};&
 &
 &
 &
-&
-&
-\node [Function] (con@cmp1) {$\begin{array}{c}\text{6: con\_cmp1} \\ \text{\textit{ExecComp}}\end{array}$};&
+\node [Function] (con@cmp1) {$\text{\text{4: con\_cmp1}}$};&
 &
 \\
-%Row 8
+%Row 6
 \node [DataIO] (left_output_con@cmp2) {$\begin{array}{c}con2^{*}\end{array}$};&
 \node [DataInter] (con@cmp2-Driver) {$\begin{array}{c}con2\end{array}$};&
 &
 &
 &
 &
-&
-&
-\node [Function] (con@cmp2) {$\begin{array}{c}\text{7: con\_cmp2} \\ \text{\textit{ExecComp}}\end{array}$};&
+\node [Function] (con@cmp2) {$\text{\text{5: con\_cmp2}}$};&
 \\
-%Row 9
-&
-&
+%Row 7
 &
 &
 &
@@ -133,8 +95,6 @@
 { [start chain=process]
  \begin{pgfonlayer}{process} 
 \chainin (Driver);
-\chainin (px) [join=by ProcessHV];
-\chainin (pz) [join=by ProcessHV];
 \chainin (cycle@d1) [join=by ProcessHV];
 \chainin (cycle@d2) [join=by ProcessHV];
 \chainin (obj@cmp) [join=by ProcessHV];
@@ -147,45 +107,37 @@
 \begin{pgfonlayer}{data}
 \path
 % Horizontal edges
-(Driver) edge [DataLine] (Driver-pz)
-(Driver) edge [DataLine] (Driver-px)
+(Driver) edge [DataLine] (Driver-cycle@d1)
+(Driver) edge [DataLine] (Driver-cycle@d2)
+(Driver) edge [DataLine] (Driver-obj@cmp)
 (obj@cmp) edge [DataLine] (obj@cmp-Driver)
 (con@cmp1) edge [DataLine] (con@cmp1-Driver)
 (con@cmp2) edge [DataLine] (con@cmp2-Driver)
-(cycle@d1) edge [DataLine] (cycle@d1-obj@cmp)
 (cycle@d1) edge [DataLine] (cycle@d1-con@cmp1)
 (cycle@d1) edge [DataLine] (cycle@d1-cycle@d2)
-(cycle@d2) edge [DataLine] (cycle@d2-obj@cmp)
+(cycle@d1) edge [DataLine] (cycle@d1-obj@cmp)
 (cycle@d2) edge [DataLine] (cycle@d2-con@cmp2)
 (cycle@d2) edge [DataLine] (cycle@d2-cycle@d1)
-(px) edge [DataLine] (px-cycle@d1)
-(px) edge [DataLine] (px-obj@cmp)
-(pz) edge [DataLine] (pz-cycle@d1)
-(pz) edge [DataLine] (pz-cycle@d2)
-(pz) edge [DataLine] (pz-obj@cmp)
-(pz) edge [DataLine] (left_output_pz)
+(cycle@d2) edge [DataLine] (cycle@d2-obj@cmp)
+(cycle@d1) edge [DataLine] (left_output_cycle@d1)
 (Driver) edge [DataLine] (left_output_Driver)
-(px) edge [DataLine] (left_output_px)
+(cycle@d2) edge [DataLine] (left_output_cycle@d2)
 (obj@cmp) edge [DataLine] (left_output_obj@cmp)
 (con@cmp1) edge [DataLine] (left_output_con@cmp1)
 (con@cmp2) edge [DataLine] (left_output_con@cmp2)
 % Vertical edges
-(Driver-pz) edge [DataLine] (pz)
-(Driver-px) edge [DataLine] (px)
+(Driver-cycle@d1) edge [DataLine] (cycle@d1)
+(Driver-cycle@d2) edge [DataLine] (cycle@d2)
+(Driver-obj@cmp) edge [DataLine] (obj@cmp)
 (obj@cmp-Driver) edge [DataLine] (Driver)
 (con@cmp1-Driver) edge [DataLine] (Driver)
 (con@cmp2-Driver) edge [DataLine] (Driver)
-(cycle@d1-obj@cmp) edge [DataLine] (obj@cmp)
 (cycle@d1-con@cmp1) edge [DataLine] (con@cmp1)
 (cycle@d1-cycle@d2) edge [DataLine] (cycle@d2)
-(cycle@d2-obj@cmp) edge [DataLine] (obj@cmp)
+(cycle@d1-obj@cmp) edge [DataLine] (obj@cmp)
 (cycle@d2-con@cmp2) edge [DataLine] (con@cmp2)
 (cycle@d2-cycle@d1) edge [DataLine] (cycle@d1)
-(px-cycle@d1) edge [DataLine] (cycle@d1)
-(px-obj@cmp) edge [DataLine] (obj@cmp)
-(pz-cycle@d1) edge [DataLine] (cycle@d1)
-(pz-cycle@d2) edge [DataLine] (cycle@d2)
-(pz-obj@cmp) edge [DataLine] (obj@cmp)
+(cycle@d2-obj@cmp) edge [DataLine] (obj@cmp)
 (Driver) edge [DataLine] (output_Driver);
 \end{pgfonlayer}
 
