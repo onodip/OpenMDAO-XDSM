@@ -23,11 +23,11 @@ if __name__ == '__main__':
     # Write output. PDF will only be created, if pdflatex is installed
     write_xdsm(
         prob,
-        filename='sellar_pyxdsm',
-        out_format='pdf',
+        filename='sellar_pyxdsm',  # Output files will be saved into the same folder as this script
+        out_format='pdf',  # Change to 'html' to use XDSMjs
         show_browser=True,
         quiet=False,
         output_side='left',
-        include_indepvarcomps=False,
-        class_names='short'
+        include_indepvarcomps=False,  # Recommended to keep it false for clarity
+        class_names='short'  # Set to False to turn off class names
     )
