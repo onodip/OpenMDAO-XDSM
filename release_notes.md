@@ -1,4 +1,24 @@
 *************************************
+# Release Notes for OpenMDAO-XDSM 1.0
+
+May 16, 2023
+
+## Backwards Incompatible API Changes:
+
+- None
+
+## Backwards Incompatible NON-API Changes:
+
+- The omxdsm package was restructured, and some functions were moved into new files.
+
+## New Features:
+
+- Short class names (class names without module path), by passing class_names=short
+
+## Bug Fixes:
+- Fixed duplicate AutoIndepVarComp, when newer OpenMDAO versions were used.
+
+*************************************
 # Release Notes for OpenMDAO-XDSM 0.8
 
 May 9, 2023
