@@ -4,9 +4,11 @@ A console script wrapper for OpenMDAO-XDSM.
 from __future__ import print_function
 
 import openmdao.utils.hooks as hooks
-from omxdsm.xdsm_writer import write_xdsm, \
-    _DEFAULT_BOX_STACKING, _DEFAULT_BOX_WIDTH, _MAX_BOX_LINES, _DEFAULT_OUTPUT_SIDE, _CHAR_SUBS
 from openmdao.utils.file_utils import _load_and_exec, _to_filename  # TODO private methods
+
+from omxdsm.settings import DEFAULT_OUTPUT_SIDE, CHAR_SUBS
+from omxdsm.xdsm_writer import write_xdsm, \
+    _DEFAULT_BOX_STACKING, _DEFAULT_BOX_WIDTH, _MAX_BOX_LINES
 
 
 def _xdsm_setup_parser(parser):
@@ -55,7 +57,7 @@ def _xdsm_setup_parser(parser):
                         help='Positions the number either above or in front of the component label '
                         'if numbered_comps is true.')
     parser.add_argument('--output_side', action='store', dest='output_side',
-                        default=_DEFAULT_OUTPUT_SIDE,
+                        default=DEFAULT_OUTPUT_SIDE,
                         help='Position of the outputs on the diagram. Left or right, or a '
                              'dictionary with component types as keys. Component type key can be '
                              '"optimization", "doe" or "default".')
@@ -96,7 +98,7 @@ def _xdsm_cmd(options, user_args):
                        recurse=options.recurse,
                        include_external_outputs=not options.no_extern_outputs,
                        out_format=options.format,
-                       include_solver=options.include_solver, subs=_CHAR_SUBS,
+                       include_solver=options.include_solver, subs=CHAR_SUBS,
                        show_browser=not options.no_browser, show_parallel=not options.no_parallel,
                        add_process_conns=not options.no_process_conns,
                        output_side=options.output_side,
@@ -116,7 +118,7 @@ def _xdsm_cmd(options, user_args):
                    recurse=options.recurse,
                    include_external_outputs=not options.no_extern_outputs,
                    out_format=options.format,
-                   include_solver=options.include_solver, subs=_CHAR_SUBS,
+                   include_solver=options.include_solver, subs=CHAR_SUBS,
                    show_browser=not options.no_browser, show_parallel=not options.no_parallel,
                    add_process_conns=not options.no_process_conns, output_side=options.output_side,
                    legend=options.legend,
