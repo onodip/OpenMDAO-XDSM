@@ -21,6 +21,10 @@ from distutils.version import LooseVersion
 
 from numpy.distutils.exec_command import find_executable
 from openmdao.api import Problem
+
+from omxdsm.formatting import _textify, _multiline_block, _replace_chars, _format_solver_str
+from omxdsm.settings import *
+
 try:
     from openmdao.utils.general_utils import simple_warning
 except ImportError:
@@ -30,87 +34,6 @@ from pyxdsm.XDSM import XDSM
 
 from omxdsm.html_writer import write_html
 
-# Writer is chosen based on the output format
-_OUT_FORMATS = {'tex': 'pyxdsm', 'pdf': 'pyxdsm', 'json': 'xdsmjs', 'html': 'xdsmjs'}
-
-# Variable formatting settings.
-# Last item (initial0) is used to pass the character substitution  step without changes in the string.
-# This string won't appear on the XDSM. Variable names should not contain this substring.
-_SUPERSCRIPTS = {'optimal': '*', 'initial': '(0)', 'target': 't', 'consistency': 'c', 'initial0': '#INIT#'}
-
-# Character substitutions in labels
-# pyXDSM:
-# Interpreted as TeX syntax
-# Underscore is replaced with a skipped underscore
-# Round parenthesis is replaced with subscript syntax, e.g. x(1) --> x_{1}
-_CHAR_SUBS = {
-    'pyxdsm': (
-        ('_', r'\_'),
-        ('(', '_{'),
-        (')', '}'),
-        ('@', r'\_'),
-        (_SUPERSCRIPTS['initial0'], _SUPERSCRIPTS['initial'])
-    ),
-    'xdsmjs': (
-        (' ', '-'),
-        (':', ''),
-        ('_', r'\_'),
-        ('@', '_'),
-        (_SUPERSCRIPTS['initial0'], _SUPERSCRIPTS['initial'])
-    ),
-}
-_AUTO_IVC_NAME = '@auto@ivc'
-_CONNECTION_NAMING = 'mixed'  # Auto-IVC connections inherit the name from the target, if it is set to 'mixed'
-
-# Default solver names in OpenMDAO, when no solver is assigned to a system.
-_DEFAULT_SOLVER_NAMES = {'linear': 'LN: RUNONCE', 'nonlinear': 'NL: RUNONCE'}
-# On which side to place outputs? One of "left", "right"
-_DEFAULT_OUTPUT_SIDE = 'left'
-# Default writer, this will be used if settings are not found for a custom writer
-_DEFAULT_WRITER = 'pyxdsm'
-
-# Maps OpenMDAO component types with the available block styling options in the writer.
-# For pyXDSM check the "diagram_styles" file for style definitions.
-# For XDSMjs check the CSS style sheets.
-# 'indep' is used only if include_indepvarcomps is turned on.
-_COMPONENT_TYPE_MAP = {
-    'pyxdsm': {  # Newest release
-        'indep': 'Function',
-        'explicit': 'Function',
-        'implicit': 'ImplicitFunction',
-        'exec': 'Function',
-        'metamodel': 'Metamodel',
-        'group': 'Group',
-        'implicit_group': 'ImplicitGroup',
-        'optimization': 'Optimization',
-        'doe': 'DOE',
-        'solver': 'MDA',
-    },
-    'pyxdsm 1.0': {  # Legacy color scheme
-        'indep': 'Function',
-        'explicit': 'Function',
-        'implicit': 'ImplicitAnalysis',
-        'exec': 'Function',
-        'metamodel': 'Metamodel',
-        'group': 'Function',
-        'implicit_group': 'ImplicitAnalysis',
-        'optimization': 'Optimization',
-        'doe': 'DOE',
-        'solver': 'MDA',
-    },
-    'xdsmjs': {
-        'indep': 'function',
-        'explicit': 'function',
-        'implicit': 'analysis',
-        'exec': 'function',
-        'metamodel': 'metamodel',
-        'group': 'function',
-        'implicit_group': 'analysis',
-        'optimization': 'optimization',
-        'doe': 'doe',
-        'solver': 'mda',
-    }
-}
 
 # Settings for pyXDSM
 
@@ -263,7 +186,7 @@ class AbstractXDSMWriter(BaseXDSMWriter):
         """
         pass  # Implement in child class
 
-    def add_output(self, name, label, style='DataIO', stack=False, side=_DEFAULT_OUTPUT_SIDE):
+    def add_output(self, name, label, style='DataIO', stack=False, side=DEFAULT_OUTPUT_SIDE):
         """
         Add output connection.
 
@@ -334,7 +257,7 @@ class AbstractXDSMWriter(BaseXDSMWriter):
             Formatted var string.
         """
         if superscripts is None:
-            superscripts = _SUPERSCRIPTS
+            superscripts = SUPERSCRIPTS
         sup = superscripts[var_type]
         return '{}^{}'.format(name, sup)
 
@@ -394,12 +317,12 @@ class XDSMjsWriter(AbstractXDSMWriter):
         self.reserved_words = self._ul,  # Ignored at text formatting
         # Output file saved with this extension
         self.extension = 'html'
-        if self.name in _COMPONENT_TYPE_MAP:
-            self.type_map = _COMPONENT_TYPE_MAP[self.name]
+        if self.name in COMPONENT_TYPE_MAP:
+            self.type_map = COMPONENT_TYPE_MAP[self.name]
         else:  # Use default
-            self.type_map = _COMPONENT_TYPE_MAP[_DEFAULT_WRITER]
+            self.type_map = COMPONENT_TYPE_MAP[DEFAULT_WRITER]
             msg = 'Name "{}" not found in component type mapping, will default to "{}"'
-            simple_warning(msg.format(self.name, _DEFAULT_WRITER))
+            simple_warning(msg.format(self.name, DEFAULT_WRITER))
         self.class_names = class_names
 
     def _format_id(self, name, subs=(('_', ''),)):
@@ -561,7 +484,7 @@ class XDSMjsWriter(AbstractXDSMWriter):
         """
         self.connect(src=self._ul, target=name, label=label)
 
-    def add_output(self, name, label=None, style='DataIO', stack=False, side=_DEFAULT_OUTPUT_SIDE):
+    def add_output(self, name, label=None, style='DataIO', stack=False, side=DEFAULT_OUTPUT_SIDE):
         """
         Add output connection.
 
@@ -734,11 +657,11 @@ class XDSMWriter(XDSM, BaseXDSMWriter):
             type_map_name = self.name
             if pyxdsm_version < LooseVersion('2.0.0'):
                 type_map_name += ' 1.0'
-            self.type_map = _COMPONENT_TYPE_MAP[type_map_name]
+            self.type_map = COMPONENT_TYPE_MAP[type_map_name]
         except KeyError:
-            self.type_map = _COMPONENT_TYPE_MAP[_DEFAULT_WRITER]
+            self.type_map = COMPONENT_TYPE_MAP[DEFAULT_WRITER]
             msg = 'Name "{}" not found in component type mapping, will default to "{}"'
-            simple_warning(msg.format(self.name, _DEFAULT_WRITER))
+            simple_warning(msg.format(self.name, DEFAULT_WRITER))
         # Number of components
         self._nr_comps = 0
         # Maps the component names to their index (position on the matrix diagonal)
@@ -1021,7 +944,7 @@ class XDSMWriter(XDSM, BaseXDSMWriter):
             Formatted var string.
         """
         if superscripts is None:
-            superscripts = _SUPERSCRIPTS
+            superscripts = SUPERSCRIPTS
         sup = superscripts[var_type]
         return '{}^{{{}}}'.format(name, sup)
 
@@ -1110,8 +1033,8 @@ class XDSMWriter(XDSM, BaseXDSMWriter):
 
 def write_xdsm(data_source, filename, model_path=None, recurse=True,
                include_external_outputs=True, out_format='tex',
-               include_solver=False, subs=_CHAR_SUBS, show_browser=True,
-               add_process_conns=True, show_parallel=True, quiet=False, output_side=_DEFAULT_OUTPUT_SIDE,
+               include_solver=False, subs=CHAR_SUBS, show_browser=True,
+               add_process_conns=True, show_parallel=True, quiet=False, output_side=DEFAULT_OUTPUT_SIDE,
                legend=False, class_names=True, equations=False, include_indepvarcomps=True,
                writer_options={}, **kwargs):
     """
@@ -1242,7 +1165,7 @@ def write_xdsm(data_source, filename, model_path=None, recurse=True,
 
     if model_path is not None:
         if isinstance(data_source, Problem):
-            _model = data_source.model._get_subsystem(model_path)
+            _model = data_source.model._get_subsystem(model_path)  # TODO private method
             if _model is None:
                 msg = 'Model path "{}" does not exist in problem "{}".'
                 raise ValueError(msg.format(model_path, data_source))
@@ -1262,10 +1185,10 @@ def write_xdsm(data_source, filename, model_path=None, recurse=True,
     # If the "writer" argument not provided, the output format is used to choose the writer
     if writer is None:
         try:
-            writer = _OUT_FORMATS[out_format]
+            writer = OUT_FORMATS[out_format]
         except KeyError:
             msg = 'Invalid output format "{}", choose from: {}'
-            raise ValueError(msg.format(out_format, _OUT_FORMATS.keys()))
+            raise ValueError(msg.format(out_format, OUT_FORMATS.keys()))
         writer_name = writer.lower()  # making it case-insensitive
         if isinstance(subs, dict):
             subs = subs[writer_name]  # Getting the character substitutes of the chosen writer
@@ -1294,9 +1217,9 @@ def write_xdsm(data_source, filename, model_path=None, recurse=True,
 
 def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanup=True,
                 design_vars=None, responses=None, residuals=None, model_path=None, recurse=True,
-                include_external_outputs=True, subs=_CHAR_SUBS, writer='pyXDSM', show_browser=False,
+                include_external_outputs=True, subs=CHAR_SUBS, writer='pyXDSM', show_browser=False,
                 add_process_conns=True, show_parallel=True, quiet=False, build_pdf=False,
-                output_side=_DEFAULT_OUTPUT_SIDE, driver_type='optimization', legend=False,
+                output_side=DEFAULT_OUTPUT_SIDE, driver_type='optimization', legend=False,
                 class_names=False, equations=False, include_indepvarcomps=True,
                 writer_options={}, **kwargs):
     """
@@ -1418,7 +1341,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
         elif isinstance(output_side, dict):
             # Gets the specified key, or the default in the dictionary, or the global default
             # if both of them are missing from the dictionary.
-            side = output_side.get(component_name, output_side.get('default', _DEFAULT_OUTPUT_SIDE))
+            side = output_side.get(component_name, output_side.get('default', DEFAULT_OUTPUT_SIDE))
             return side
         else:
             msg = 'Output side argument should be string or dictionary, instead it is a {}.'
@@ -1429,7 +1352,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
 
     if driver is not None:
         design_vars2 = _collect_connections(design_vars, recurse=recurse, model_path=model_path,
-                                            connection_namer=_CONNECTION_NAMING, connections=connections)
+                                            connection_namer=CONNECTION_NAMING, connections=connections)
         responses2 = _collect_connections(responses, recurse=recurse, model_path=model_path)
     else:
         design_vars2 = {}
@@ -1456,7 +1379,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
         filtered_comp_names = [c['name'] for c in filtered_comps]
 
         for src, tgts in conns2.copy().items():
-            if src in filtered_comp_names or (src == _AUTO_IVC_NAME):
+            if src in filtered_comp_names or (src == AUTO_IVC_NAME):
                 if src in design_vars2:
                     for tgt in tgts:
                         dv_tgt = design_vars2.setdefault(tgt, [])
@@ -1549,7 +1472,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
     for src, dct in conns2.items():
         for tgt, conn_vars in dct.items():
             if src and tgt:
-                if src == _AUTO_IVC_NAME:
+                if src == AUTO_IVC_NAME:
                     has_auto_ivc = True
                 # Because Auto-IVC not in comps, it has to be skipped
                 src_parallel = comps_dct[src]['is_parallel'] if src in comps_dct else False
@@ -1560,7 +1483,7 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
                 simple_warning(msg.format(src=src, tgt=tgt, conn=conn_vars))
 
     if has_auto_ivc:
-        auto_ivc_comp = OrderedDict(name=_AUTO_IVC_NAME, stack=False, type="subsystem", expressions=None,
+        auto_ivc_comp = OrderedDict(name=AUTO_IVC_NAME, stack=False, type="subsystem", expressions=None,
                                     is_parallel=False, component_type=None, subsystem_type='component')
         auto_ivc_comp["class"] = "IndepVarComp"
         auto_ivc_comp["abs_name"] = auto_ivc_comp["name"]
@@ -1688,7 +1611,7 @@ def _process_connections(conns, recurse=True, subs=None):
         return _convert_name(x, recurse=recurse, subs=subs)
 
     conns_new = [{k: convert(v) for k, v in conn.items() if k in ('src', 'tgt')} for conn in conns]
-    return _accumulate_connections(conns_new, connection_namer=_CONNECTION_NAMING)
+    return _accumulate_connections(conns_new, connection_namer=CONNECTION_NAMING)
 
 
 def _accumulate_connections(conns, connection_namer='mixed'):
@@ -1722,11 +1645,11 @@ def _accumulate_connections(conns, connection_namer='mixed'):
         if src_comp == tgt_comp:
             # When recurse is False, ignore connections within the same subsystem.
             continue
-        # From which component the connection get it's name
+        # From which component the connection get its name
         if connection_namer == "both":
             var = f"{conn['src']['var']}-{conn['tgt']['var']}"
         elif connection_namer == "mixed":
-            namer = 'src' if src_comp != _AUTO_IVC_NAME else 'tgt'
+            namer = 'src' if src_comp != AUTO_IVC_NAME else 'tgt'
             var = conn[namer]['var']
         else:
             var = conn[connection_namer]['var']
@@ -1768,7 +1691,7 @@ def _collect_connections(variables, recurse, model_path=None, connections=None, 
         elif connection_namer == 'tgt':
             var_name = tgt_vars[conv_var['abs_name']]['var']
         elif connection_namer == 'mixed':
-            if conv_var['comp'].replace('_', '@') == _AUTO_IVC_NAME:
+            if conv_var['comp'].replace('_', '@') == AUTO_IVC_NAME:
                 var_name = tgt_vars[conv_var['abs_name']]['var']
             else:
                 var_name = conv_var['var']
@@ -2017,94 +1940,3 @@ def _get_comps(tree, model_path=None, recurse=True, include_solver=False, includ
     else:
         return components, comps_filtered
 
-
-def _replace_chars(name, substitutes):
-    """
-    Replace characters in `name` with the substitute characters.
-
-    If some characters are both to be replaced or other characters are replaced with them
-    (e.g.: ? -> !, ! ->#), than it is not safe to give a dictionary as the `substitutes`
-    (because it is unordered).
-
-    .. warning::
-
-       Order matters, because otherwise some characters could be replaced more than once.
-
-    Parameters
-    ----------
-    name : str
-        Name
-    substitutes: tuple or None
-        Character pairs with old and substitute characters
-
-    Returns
-    -------
-       str
-    """
-    if substitutes:
-        for k, v in substitutes:
-            name = name.replace(k, v)
-    return name
-
-
-def _format_solver_str(dct, stacking='horizontal', solver_types=('nonlinear', 'linear')):
-    """
-    Format solver string.
-
-    Parameters
-    ----------
-    dct : dict
-        Dictionary, which contains keys for the solver names
-    stacking : str
-        Box stacking
-    solver_types : tuple(str)
-        Solver types, e.g. "linear"
-
-    Returns
-    -------
-        str
-    """
-    stacking = stacking.lower()
-
-    solvers = []
-    for solver_type in solver_types:  # loop through all solver types
-        solver_name = dct['{}_solver'.format(solver_type)]
-        if solver_name != _DEFAULT_SOLVER_NAMES[solver_type]:  # Not default solver found
-            solvers.append(solver_name)
-    if stacking == 'vertical':
-        # Make multiline comp if not numbered
-        return _multiline_block(*solvers)
-    elif stacking in ('horizontal', 'max_chars', 'cut_chars'):
-        return ' '.join(solvers)
-    else:
-        msg = ('Invalid stacking "{}". Choose from: "vertical", "horizontal", "max_chars", '
-               '"cut_chars"')
-        raise ValueError(msg.format(stacking))
-
-
-def _multiline_block(*texts, **kwargs):
-    """
-    Make a string for a multiline block.
-
-    A string is returned, if there would be only 1 line.
-
-    texts : iterable(str)
-        Text strings, each will go to new line
-    **kwargs : dict
-        Unused keywords are ignored.
-        "end_char" is the separator at the end of line. Defaults to '' (no separator).
-
-    Returns
-    -------
-       list(str) or str
-    """
-    end_char = kwargs.pop('end_char', '')
-    out_txts = [_textify(t + end_char) for t in texts]
-    if len(out_txts) == 1:
-        out_txts = out_txts[0]
-    return out_txts
-
-
-def _textify(name):
-    # Uses the LaTeX \text{} command to insert plain text in math mode
-    return r'\text{{{}}}'.format(name)
