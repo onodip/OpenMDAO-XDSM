@@ -1,7 +1,7 @@
 """
 Common text formatting utilities.
 """
-from settings import DEFAULT_SOLVER_NAMES
+from omxdsm.settings import DEFAULT_SOLVER_NAMES
 
 
 def _replace_chars(name, substitutes):
