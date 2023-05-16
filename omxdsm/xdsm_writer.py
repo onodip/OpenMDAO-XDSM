@@ -15,6 +15,7 @@ XDSMjs is available at https://github.com/OneraHub/XDSMjs.
 """
 
 import json
+import subprocess
 import warnings
 from collections import OrderedDict
 from distutils.version import LooseVersion
@@ -507,7 +508,10 @@ class XDSMWriter(XDSM, BaseXDSMWriter):
             # Now really add the system with the XDSM class' method
             self.add_system(**comp)
 
-        super(XDSMWriter, self).write(file_name=filename, build=build, **kwargs)
+        try:
+            super(XDSMWriter, self).write(file_name=filename, build=build, **kwargs)
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError('Could not write output file, because it is open read-only. Try closing the file')
 
     def add_system(self, node_name, style, label, stack=False, faded=False, **kwargs):
         """
@@ -1278,14 +1282,21 @@ def _write_xdsm(filename, viewer_data, driver=None, include_solver=False, cleanu
                 simple_warning(msg.format(src=src, tgt=tgt, conn=conn_vars))
 
     if has_auto_ivc:
-        auto_ivc_comp = OrderedDict(name=AUTO_IVC_NAME, stack=False, type="subsystem", expressions=None,
-                                    is_parallel=False, component_type=None, subsystem_type='component')
-        auto_ivc_comp["class"] = "IndepVarComp"
-        auto_ivc_comp["abs_name"] = auto_ivc_comp["name"]
-        if include_indepvarcomps:
-            comps.insert(0, auto_ivc_comp)  # Auto-IVC added as the first component
-        else:
-            filtered_comps.insert(0, auto_ivc_comp)  # Auto-IVC added as the first filtered component (not on the XDSM)
+        try:
+            from openmdao.core.indepvarcomp import _AutoIndepVarComp
+            auto_ivc_comp = comps[0]
+            if auto_ivc_comp['name'].endswith(AUTO_IVC_NAME.replace('@', '_')):
+                filtered_comps.insert(0, auto_ivc_comp)
+        except ImportError:  # Old versions
+            auto_ivc_comp = OrderedDict(name=AUTO_IVC_NAME, stack=False, type="subsystem", expressions=None,
+                                        is_parallel=False, component_type=None, subsystem_type='component')
+            auto_ivc_comp["class"] = "IndepVarComp"
+            auto_ivc_comp["abs_name"] = auto_ivc_comp["name"]
+            if include_indepvarcomps:
+                comps.insert(0, auto_ivc_comp)  # Auto-IVC added as the first component
+            else:
+                # Auto-IVC added as the first filtered component (not on the XDSM)
+                filtered_comps.insert(0, auto_ivc_comp)
 
     for comp in comps:  # Driver is 1, so starting from 2
         # The second condition is for backwards compatibility with older data.

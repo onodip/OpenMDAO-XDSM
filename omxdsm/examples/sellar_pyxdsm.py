@@ -21,5 +21,13 @@ if __name__ == '__main__':
     prob.final_setup()
 
     # Write output. PDF will only be created, if pdflatex is installed
-    write_xdsm(prob, filename='sellar_pyxdsm', out_format='pdf', show_browser=True,
-               quiet=False, output_side='left', include_indepvarcomps=False, class_names=False)
+    write_xdsm(
+        prob,
+        filename='sellar_pyxdsm',
+        out_format='pdf',
+        show_browser=True,
+        quiet=False,
+        output_side='left',
+        include_indepvarcomps=False,
+        class_names='short'
+    )
