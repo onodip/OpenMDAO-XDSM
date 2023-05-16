@@ -91,3 +91,73 @@ def _multiline_block(*texts, **kwargs):
 def _textify(name):
     # Uses the LaTeX \text{} command to insert plain text in math mode
     return r'\text{{{}}}'.format(name)
+
+
+def _replace_illegal_chars(name, illegal_cars=('.', ' ', '-', '_', ':')):
+    # Replaces illegal characters in names for pyXDSM component and connection names
+    # This does not affect the labels, only reference names in TikZ
+    if isinstance(name, str):
+        for char in illegal_cars:
+            name = name.replace(char, '@')
+    return name
+
+
+def _convert_name(name, recurse=True, subs=None):
+    """
+    From an absolute path returns the variable name and its owner component in a dict.
+
+    Names are also formatted.
+
+    Parameters
+    ----------
+    name : str or list(str)
+        Connection absolute path and name
+    recurse : bool
+        If False, treat the top level of each name as the source/target component.
+    subs: tuple or None
+        Character pairs with old and substitute characters
+
+    Returns
+    -------
+        dict(str, str)
+    """
+    def convert(abs_name):
+        sep = '.'
+        abs_name = abs_name.replace('@', sep)
+        name_items = abs_name.split(sep)
+        if recurse:
+            if len(name_items) > 1:
+                comp = name_items[-2]  # -1 is variable name, before that -2 is the component name
+                path = _get_path(abs_name, sep=sep)
+            else:
+                msg = ('The name "{}" cannot be processed. The separator character is "{}", '
+                       'which does not occur in the name.')
+                raise ValueError(msg.format(abs_name, sep))
+        else:
+            comp = name_items[0]
+            path = comp
+        var = name_items[-1]
+        var = _replace_chars(var, substitutes=subs)
+        return {'comp': comp, 'var': var,
+                'abs_name': _replace_illegal_chars(abs_name), 'path': _replace_illegal_chars(path)}
+
+    if isinstance(name, list):  # If a source has multiple targets
+        return map(convert, name)
+    else:  # string
+        return convert(name)
+
+
+def _get_path(name, sep='.'):
+    # Returns path until the last separator in the name
+    return name.rsplit(sep, 1)[0]
+
+
+def _make_rel_path(full_path, model_path, sep='.'):
+    # Path will be cut from this character. Length of model path + separator after it.
+    # If path does not contain the model path, the full path will be returned.
+    if model_path is not None:
+        path = model_path + sep  # Add separator character
+        first_char = len(path)
+        if full_path.startswith(path):
+            return full_path[first_char:]
+    return full_path  # No model path, so return the original

@@ -38,7 +38,7 @@
 %Row 2
 \node [DataIO] (left_output_cycle@d1) {$\begin{array}{c}z^{*} \\ x^{*}\end{array}$};&
 &
-\node [Function] (cycle@d1) {$\begin{array}{c}\text{1: d1} \\ \text{\textit{openmdao.test\_suite.components.sellar:SellarDis1}}\end{array}$};&
+\node [Function] (cycle@d1) {$\begin{array}{c}\text{1: d1} \\ \text{\textit{SellarDis1}}\end{array}$};&
 \node [DataInter] (cycle@d1-cycle@d2) {$\begin{array}{c}y1\end{array}$};&
 \node [DataInter] (cycle@d1-obj@cmp) {$\begin{array}{c}y1\end{array}$};&
 \node [DataInter] (cycle@d1-con@cmp1) {$\begin{array}{c}y1\end{array}$};&
@@ -48,7 +48,7 @@
 \node [DataIO] (left_output_cycle@d2) {$\begin{array}{c}z^{*} \\ x^{*}\end{array}$};&
 &
 \node [DataInter] (cycle@d2-cycle@d1) {$\begin{array}{c}y2\end{array}$};&
-\node [Function] (cycle@d2) {$\begin{array}{c}\text{2: d2} \\ \text{\textit{openmdao.test\_suite.components.sellar:SellarDis2}}\end{array}$};&
+\node [Function] (cycle@d2) {$\begin{array}{c}\text{2: d2} \\ \text{\textit{SellarDis2}}\end{array}$};&
 \node [DataInter] (cycle@d2-obj@cmp) {$\begin{array}{c}y2\end{array}$};&
 &
 \node [DataInter] (cycle@d2-con@cmp2) {$\begin{array}{c}y2\end{array}$};&
@@ -58,7 +58,7 @@
 \node [DataInter] (obj@cmp-Driver) {$\begin{array}{c}obj\end{array}$};&
 &
 &
-\node [Function] (obj@cmp) {$\begin{array}{c}\text{3: obj\_cmp} \\ \text{\textit{openmdao.components.exec\_comp:ExecComp}}\end{array}$};&
+\node [Function] (obj@cmp) {$\begin{array}{c}\text{3: obj\_cmp} \\ \text{\textit{ExecComp}}\end{array}$};&
 &
 &
 \\
@@ -68,7 +68,7 @@
 &
 &
 &
-\node [Function] (con@cmp1) {$\begin{array}{c}\text{4: con\_cmp1} \\ \text{\textit{openmdao.components.exec\_comp:ExecComp}}\end{array}$};&
+\node [Function] (con@cmp1) {$\begin{array}{c}\text{4: con\_cmp1} \\ \text{\textit{ExecComp}}\end{array}$};&
 &
 \\
 %Row 6
@@ -78,7 +78,7 @@
 &
 &
 &
-\node [Function] (con@cmp2) {$\begin{array}{c}\text{5: con\_cmp2} \\ \text{\textit{openmdao.components.exec\_comp:ExecComp}}\end{array}$};&
+\node [Function] (con@cmp2) {$\begin{array}{c}\text{5: con\_cmp2} \\ \text{\textit{ExecComp}}\end{array}$};&
 \\
 %Row 7
 &
