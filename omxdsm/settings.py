@@ -1,3 +1,7 @@
+"""
+Settings
+"""
+
 # Writer is chosen based on the output format
 OUT_FORMATS = {'tex': 'pyxdsm', 'pdf': 'pyxdsm', 'json': 'xdsmjs', 'html': 'xdsmjs'}
 

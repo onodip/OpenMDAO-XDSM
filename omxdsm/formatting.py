@@ -1,4 +1,7 @@
-_DEFAULT_SOLVER_NAMES = {'linear': 'LN: RUNONCE', 'nonlinear': 'NL: RUNONCE'}  # TODO duplicate
+"""
+Common text formatting utilities.
+"""
+from settings import DEFAULT_SOLVER_NAMES
 
 
 def _replace_chars(name, substitutes):
@@ -52,7 +55,7 @@ def _format_solver_str(dct, stacking='horizontal', solver_types=('nonlinear', 'l
     solvers = []
     for solver_type in solver_types:  # loop through all solver types
         solver_name = dct['{}_solver'.format(solver_type)]
-        if solver_name != _DEFAULT_SOLVER_NAMES[solver_type]:  # Not default solver found
+        if solver_name != DEFAULT_SOLVER_NAMES[solver_type]:  # Not default solver found
             solvers.append(solver_name)
     if stacking == 'vertical':
         # Make multiline comp if not numbered
