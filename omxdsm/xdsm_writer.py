@@ -18,9 +18,15 @@ import json
 import subprocess
 import warnings
 from collections import OrderedDict
-from distutils.version import LooseVersion
+try:
+    from distutils.version import LooseVersion
+except ImportError:
+    import packaging.version.Version as LooseVersion
+try:
+    from numpy.distutils.exec_command import find_executable
+except ImportError:
+    from shutil import which as find_executable
 
-from numpy.distutils.exec_command import find_executable
 from openmdao.api import Problem
 
 from omxdsm.base import AbstractXDSMWriter, BaseXDSMWriter
