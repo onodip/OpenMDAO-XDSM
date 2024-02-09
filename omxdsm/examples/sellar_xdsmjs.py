@@ -22,4 +22,4 @@ if __name__ == '__main__':
 
     # Write output.
     write_xdsm(prob, filename='sellar_pyxdsm', out_format='html', show_browser=True,
-               quiet=False, output_side='left')
+               quiet=False, output_side='left', include_indepvarcomps=False, class_names=False)
