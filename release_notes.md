@@ -1,4 +1,27 @@
 *************************************
+# Release Notes for OpenMDAO-XDSM 1.1
+
+Feb 9, 2024
+
+## Backwards Incompatible API Changes:
+
+- None
+
+## Backwards Incompatible NON-API Changes:
+
+- None
+
+## New Features:
+
+- Python 3.12 compatibility
+- The settings in the sellar_xdsmjs.py example were updated to show a cleare diagram. 
+
+## Bug Fixes:
+
+- None
+
+
+*************************************
 # Release Notes for OpenMDAO-XDSM 1.0
 
 May 16, 2023
