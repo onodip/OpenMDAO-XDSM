@@ -1,4 +1,25 @@
 *************************************
+# Release Notes for OpenMDAO-XDSM 1.2
+
+Feb 10, 2024
+
+## Backwards Incompatible API Changes:
+
+- None
+
+## Backwards Incompatible NON-API Changes:
+
+- added packaging to the dependencies
+
+## New Features:
+
+- None
+
+## Bug Fixes:
+
+- None
+
+*************************************
 # Release Notes for OpenMDAO-XDSM 1.1
 
 Feb 9, 2024
