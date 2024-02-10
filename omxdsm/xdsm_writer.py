@@ -18,14 +18,9 @@ import json
 import subprocess
 import warnings
 from collections import OrderedDict
-try:
-    from distutils.version import LooseVersion
-except ImportError:
-    import packaging.version.Version as LooseVersion
-try:
-    from numpy.distutils.exec_command import find_executable
-except ImportError:
-    from shutil import which as find_executable
+
+from packaging.version import Version
+from shutil import which
 
 from openmdao.api import Problem
 
@@ -427,9 +422,9 @@ class XDSMWriter(XDSM, BaseXDSMWriter):
         except ImportError:
             # Older pyxdsm did not have a version attribute
             self._pyxdsm_version = '1.0.0'
-            pyxdsm_version = LooseVersion(self._pyxdsm_version)
+            pyxdsm_version = Version(self._pyxdsm_version)
 
-        if pyxdsm_version > LooseVersion('1.0.0'):
+        if Version(self._pyxdsm_version) > Version('1.0.0'):
             super(XDSMWriter, self).__init__(**options)
         else:
             if options:
@@ -450,7 +445,7 @@ class XDSMWriter(XDSM, BaseXDSMWriter):
 
         try:
             type_map_name = self.name
-            if pyxdsm_version < LooseVersion('2.0.0'):
+            if Version(self._pyxdsm_version) < Version('2.0.0'):
                 type_map_name += ' 1.0'
             self.type_map = COMPONENT_TYPE_MAP[type_map_name]
         except KeyError:
@@ -482,7 +477,7 @@ class XDSMWriter(XDSM, BaseXDSMWriter):
             Keyword args
         """
         build = kwargs.pop('build', False)
-        if LooseVersion(self._pyxdsm_version) <= LooseVersion('1.0.0'):
+        if Version(self._pyxdsm_version) <= Version('1.0.0'):
             kwargs = {}
         else:
             kwargs.setdefault('cleanup', True)
@@ -949,7 +944,7 @@ def write_xdsm(data_source, filename, model_path=None, recurse=True,
 
     if out_format in ('tex', 'pdf') and (writer is None):
         if out_format == 'pdf':
-            if not find_executable('pdflatex'):
+            if not which('pdflatex'):
                 print("Can't find pdflatex, so a pdf can't be generated.")
             else:
                 build_pdf = True

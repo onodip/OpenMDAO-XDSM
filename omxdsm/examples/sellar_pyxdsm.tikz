@@ -13,7 +13,7 @@
 
 %%% End Preamble Requirements %%%
 
-\input{"D:/Documents/GitHub/OpenMDAO-XDSM/venv_py/lib/site-packages/pyxdsm/diagram_styles"}
+\input{"C:/git/OpenMDAO-XDSM/venv/Lib/site-packages/pyxdsm/diagram_styles"}
 \begin{tikzpicture}
 
 \matrix[MatrixSetup]{

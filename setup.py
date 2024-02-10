@@ -21,7 +21,8 @@ setup(
         'openmdao>=3.1.0',
         'numpy',
         'pyxdsm',
-        'xdsmjs'
+        'xdsmjs',
+        'packaging',
     ],
     extras_require={
         'tex': [
