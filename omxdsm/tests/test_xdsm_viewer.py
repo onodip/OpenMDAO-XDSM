@@ -17,7 +17,7 @@ from openmdao import __version__ as om_version
 from omxdsm import write_xdsm, write_html
 
 # Set DEBUG to True if you want to view the generated HTML and PDF output files.
-DEBUG = True
+DEBUG = False
 # Suppress pyXDSM console output. Not suppressed in debug mode.
 QUIET = not DEBUG
 # If not in debug mode, tests will generate only the TeX files and not the PDFs, except for the
