@@ -9,7 +9,7 @@ Feb 10, 2024
 
 ## Backwards Incompatible NON-API Changes:
 
-- added packaging to the dependencies
+- Added packaging to the dependencies
 
 ## New Features:
 
