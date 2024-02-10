@@ -4,20 +4,12 @@ HTML file writing to create standalone XDSMjs output file.
 
 import xdsmjs
 
-try:  # This should work until OpenMDAO 3.20
-    from openmdao.visualization.html_utils import (
-        write_div,
-        head_and_body,
-        write_script,
-        write_style,
-    )
-except ModuleNotFoundError:  # They are imported directly if the OpenMDAO import fails
-    from omxdsm.html_utils import (
-        write_div,
-        head_and_body,
-        write_script,
-        write_style,
-    )
+from omxdsm.html_utils import (
+    write_div,
+    head_and_body,
+    write_script,
+    write_style,
+)
 
 
 def write_html(

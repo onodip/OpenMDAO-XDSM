@@ -164,8 +164,3 @@ def write_script(content='', attrs=None, indent=0, **kwargs):
     else:
         attrs = default.update(attrs)
     return write_tags('script', content, attrs=attrs, new_lines=True, indent=indent, **kwargs)
-
-
-
-
-
